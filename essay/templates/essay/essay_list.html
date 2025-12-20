@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Essay List</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #f0f0f0; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .essay-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .essay-card { border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        .essay-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .essay-meta { color: #666; font-size: 14px; }
+        .filters { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .filter-form { display: flex; gap: 10px; align-items: center; }
+        .btn { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 All Essays</h1>
+            <p>Browse essays published by our community</p>
+            <a href="/">← Back to Home</a>
+        </div>
+
+        <div class="filters">
+            <h3>Filter Essays</h3>
+            <form method="get" class="filter-form">
+                <select name="language">
+                    <option value="">All Languages</option>
+                    {% for language in languages %}
+                    <option value="{{ language.id }}" {% if request.GET.language == language.id|stringformat:"s" %}selected{% endif %}>
+                        {{ language.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <select name="category">
+                    <option value="">All Categories</option>
+                    <option value="general" {% if request.GET.category == 'general' %}selected{% endif %}>General</option>
+                    <option value="education" {% if request.GET.category == 'education' %}selected{% endif %}>Education</option>
+                    <option value="technology" {% if request.GET.category == 'technology' %}selected{% endif %}>Technology</option>
+                    <option value="environment" {% if request.GET.category == 'environment' %}selected{% endif %}>Environment</option>
+                    <option value="creative" {% if request.GET.category == 'creative' %}selected{% endif %}>Creative Writing</option>
+                </select>
+                
+                <button type="submit" class="btn">Apply Filters</button>
+                <a href="?">Clear Filters</a>
+            </form>
+        </div>
+
+        {% if essays %}
+            <div class="essay-list">
+                {% for essay in essays %}
+                <div class="essay-card">
+                    <div class="essay-title">
+                        <a href="{% url 'essay_detail' essay.id %}">{{ essay.title }}</a>
+                    </div>
+                    <div class="essay-meta">
+                        <p>👤 {{ essay.author.username }}</p>
+                        <p>📝 {{ essay.word_count }} words</p>
+                        <p>🏷️ {{ essay.get_category_display }}</p>
+                        {% if essay.primary_language %}
+                        <p>🌐 {{ essay.primary_language.name }}</p>
+                        {% endif %}
+                        <p>⭐ Score: {{ essay.score|floatformat:1 }}/100</p>
+                        <p>📅 {{ essay.created_at|date:"M d, Y" }}</p>
+                        <p>👁️ {{ essay.views }} views • ❤️ {{ essay.likes.count }} likes</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if essays|length == 0 %}
+            <div style="text-align: center; padding: 40px;">
+                <h3>No essays found matching your filters</h3>
+                <a href="?">Clear filters</a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <h3>No essays published yet</h3>
+                <p>Be the first to write an essay!</p>
+                <a href="{% url 'create_essay' %}" class="btn">Create Essay</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

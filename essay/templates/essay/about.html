@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - WriteVerse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #2C1810 0%, #5D4037 100%);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            color: #D2691E;
+        }
+
+        .logo-text {
+            background: linear-gradient(45deg, #D2691E, #FFA726);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: #D2691E;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 2.8rem;
+            color: #2C1810;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .intro-text {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== MISSION & VISION ===== */
+        .mission-vision {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .mission-box, .vision-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #D2691E;
+            transition: transform 0.3s ease;
+        }
+
+        .mission-box:hover, .vision-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .mission-box h2, .vision-box h2 {
+            color: #2C1810;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mission-box h2 i {
+            color: #D2691E;
+        }
+
+        .vision-box h2 i {
+            color: #764ba2;
+        }
+
+        /* ===== STATISTICS ===== */
+        .stats-section {
+            margin: 60px 0;
+        }
+
+        .stats-title {
+            text-align: center;
+            font-size: 2rem;
+            color: #2C1810;
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* ===== FEATURES ===== */
+        .features-section {
+            margin: 60px 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-top: 4px solid #D2691E;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: #D2691E;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            color: #2C1810;
+            margin-bottom: 15px;
+        }
+
+        /* ===== TEAM ===== */
+        .team-section {
+            margin: 60px 0;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .team-member {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .member-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .member-name {
+            font-size: 1.3rem;
+            color: #2C1810;
+            margin-bottom: 10px;
+        }
+
+        .member-role {
+            color: #D2691E;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* ===== CONTACT ===== */
+        .contact-section {
+            background: linear-gradient(135deg, #2C1810 0%, #5D4037 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 20px;
+            margin-top: 40px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .contact-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            color: #D2691E;
+            margin-bottom: 15px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .content-card {
+                padding: 25px;
+            }
+            
+            .page-title {
+                font-size: 2.2rem;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .mission-vision {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-pen-nib"></i>
+                <span class="logo-text">WriteVerse</span>
+            </div>
+            <p class="tagline">Where Writers Grow, Compete & Succeed</p>
+            
+            <div class="nav-buttons">
+                <a href="/" class="nav-btn">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#" class="nav-btn">
+                    <i class="fas fa-trophy"></i> Competitions
+                </a>
+                <a href="#" class="nav-btn">
+                    <i class="fas fa-users"></i> Community
+                </a>
+                <a href="#" class="nav-btn">
+                    <i class="fas fa-graduation-cap"></i> Resources
+                </a>
+                <a href="#" class="nav-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <div class="content-card">
+                <h1 class="page-title">About WriteVerse</h1>
+                <p class="intro-text">
+                    Welcome to the premier destination for writers, thinkers, and creators. 
+                    Our platform is dedicated to fostering exceptional writing, encouraging 
+                    intellectual discourse, and building a vibrant community of passionate 
+                    individuals who believe in the power of words.
+                </p>
+
+                <!-- Mission & Vision -->
+                <div class="mission-vision">
+                    <div class="mission-box">
+                        <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+                        <p>To inspire and cultivate exceptional writing through community engagement and competitions. We aim to provide a platform where every voice can be heard and every story can be shared.</p>
+                    </div>
+                    <div class="vision-box">
+                        <h2><i class="fas fa-rocket"></i> Our Vision</h2>
+                        <p>Creating a global platform where every writer can find their voice and audience. We envision a world where writing is celebrated as both an art and a tool for positive change.</p>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-section">
+                    <h2 class="stats-title">Our Impact</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card" data-target="1500">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Essays Published</div>
+                        </div>
+                        <div class="stat-card" data-target="500">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Active Writers</div>
+                        </div>
+                        <div class="stat-card" data-target="25">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Competitions Hosted</div>
+                        </div>
+                        <div class="stat-card" data-target="100">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Countries Reached</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="features-section">
+                    <h2 class="stats-title">What We Offer</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📝</div>
+                            <h3 class="feature-title">Essay Writing</h3>
+                            <p>Create, edit, and publish your essays with our easy-to-use writing tools.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🏆</div>
+                            <h3 class="feature-title">Competitions</h3>
+                            <p>Participate in regular writing competitions with exciting prizes.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">👥</div>
+                            <h3 class="feature-title">Community</h3>
+                            <p>Connect with fellow writers, share feedback, and grow together.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📚</div>
+                            <h3 class="feature-title">Resources</h3>
+                            <p>Access writing guides, templates, and learning materials.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team -->
+                <div class="team-section">
+                    <h2 class="stats-title">Meet Our Team</h2>
+                    <div class="team-grid">
+                        <div class="team-member">
+                            <div class="member-photo">AH</div>
+                            <h3 class="member-name">Adellise Hadid</h3>
+                            <p class="member-role">Founder & Lead Developer</p>
+                        </div>
+                        <div class="team-member">
+                            <div class="member-photo">SM</div>
+                            <h3 class="member-name">Sarvisha Malhotra</h3>
+                            <p class="member-role">Content Director</p>
+                        </div>
+                        <div class="team-member">
+                            <div class="member-photo">RW</div>
+                            <h3 class="member-name">Rayne Williams</h3>
+                            <p class="member-role">Community Manager</p>
+                        </div>
+                        <div class="team-member">
+                            <div class="member-photo">KJ</div>
+                            <h3 class="member-name">Kendal  jenner</h3>
+                            <p class="member-role">Design Lead</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact -->
+                <div class="contact-section">
+                    <h2 class="stats-title" style="color: white;">Get In Touch</h2>
+                    <div class="contact-grid">
+                        <div class="contact-item">
+                            <div class="contact-icon">📍</div>
+                            <h3>Location</h3>
+                            <p>New baneshor , Kathmandu</p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📧</div>
+                            <h3>Email</h3>
+                            <p>essayplatform212@gmail.com</p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📱</div>
+                            <h3>Phone</h3>
+                            <p>9828654322</p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">🕒</div>
+                            <h3>Hours</h3>
+                            <p>Mon-Fri: 9AM-6PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2024 WriteVerse. All rights reserved.</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Building a better world, one essay at a time.</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Animate statistics counters
+        document.addEventListener('DOMContentLoaded', function() {
+            // Counter animation
+            const statCards = document.querySelectorAll('.stat-card');
+            
+            const animateCounter = (element, target) => {
+                let current = 0;
+                const increment = target / 100;
+                const duration = 1500;
+                const stepTime = duration / 100;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        element.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(current);
+                    }
+                }, stepTime);
+            };
+            
+            // Intersection Observer for scroll animation
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const statCard = entry.target;
+                        const numberElement = statCard.querySelector('.stat-number');
+                        const target = parseInt(statCard.getAttribute('data-target'));
+                        
+                        if (!statCard.dataset.animated) {
+                            statCard.dataset.animated = true;
+                            animateCounter(numberElement, target);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            statCards.forEach(card => observer.observe(card));
+            
+            // Smooth scroll for navigation
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (this.getAttribute('href') === '#') {
+                        e.preventDefault();
+                        alert('Feature coming soon!');
+                    }
+                });
+            });
+            
+            // Add hover effects
+            document.querySelectorAll('.feature-card, .team-member, .contact-item').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transition = 'all 0.3s ease';
+                });
+            });
+            
+            // Current year in footer
+            document.querySelector('footer p:first-child').innerHTML = 
+                `© ${new Date().getFullYear()} WriteVerse. All rights reserved.`;
+        });
+    </script>
+</body>
+</html>

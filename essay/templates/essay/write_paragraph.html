@@ -1,0 +1,489 @@
+{% extends 'essay/base.html' %}
+{% load static %}
+
+{% block title %}Write Paragraph - {{ essay.title }} - WriteVerse{% endblock %}
+
+{% block content %}
+<style>
+    .write-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 20px;
+    }
+
+    .write-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .write-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 30px 40px;
+    }
+
+    .essay-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .essay-title h1 {
+        font-size: 2.2rem;
+        margin: 0;
+        color: white;
+    }
+
+    .essay-meta {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .meta-badge {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .progress-section {
+        margin-top: 20px;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: white;
+        border-radius: 6px;
+        transition: width 0.5s ease;
+    }
+
+    .write-body {
+        padding: 40px;
+    }
+
+    .paragraphs-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 40px;
+    }
+
+    @media (max-width: 992px) {
+        .paragraphs-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Left Column: Paragraph Navigation */
+    .paragraphs-nav {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        height: fit-content;
+    }
+
+    .nav-header {
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .nav-header h3 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1.5rem;
+    }
+
+    .paragraphs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .paragraph-item {
+        padding: 18px 20px;
+        border-radius: 12px;
+        background: white;
+        border: 2px solid #e9ecef;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .paragraph-item:hover:not(.locked):not(.current) {
+        border-color: #667eea;
+        transform: translateX(5px);
+    }
+
+    .paragraph-item.current {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+    }
+
+    .paragraph-item.locked {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
+    .paragraph-item.completed {
+        border-color: #28a745;
+        background: #d4edda;
+    }
+
+    .paragraph-number {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .paragraph-status {
+        font-size: 0.8rem;
+        padding: 3px 10px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .status-locked {
+        background: #6c757d;
+        color: white;
+    }
+
+    .status-current {
+        background: white;
+        color: #667eea;
+    }
+
+    .status-completed {
+        background: #28a745;
+        color: white;
+    }
+
+    /* Right Column: Paragraph Editor */
+    .paragraph-editor-section {
+        background: white;
+        border-radius: 15px;
+        padding: 0;
+        border: 2px solid #e9ecef;
+    }
+
+    .editor-header {
+        background: #f8f9fa;
+        padding: 25px;
+        border-bottom: 2px solid #e9ecef;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .editor-header h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 1.8rem;
+    }
+
+    .paragraph-language {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .language-selector {
+        margin-top: 20px;
+    }
+
+    .language-selector label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .language-selector select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .editor-body {
+        padding: 25px;
+        min-height: 400px;
+    }
+
+    #paragraphEditor {
+        min-height: 350px;
+        border: none;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+
+    .editor-footer {
+        padding: 25px;
+        border-top: 2px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .word-count {
+        font-weight: 600;
+        color: #666;
+        font-size: 1rem;
+    }
+
+    .editor-actions {
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-save {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .btn-lock {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-lock:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+
+    .btn-complete {
+        background: #667eea;
+        color: white;
+        padding: 12px 40px;
+    }
+
+    .btn-complete:hover {
+        background: #5a6fd8;
+        transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .locked-message {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+    }
+
+    .locked-message i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #6c757d;
+    }
+
+    .locked-message h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .completion-message {
+        background: #d4edda;
+        border: 2px solid #c3e6cb;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .completion-message i {
+        font-size: 3rem;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+
+    .completion-message h3 {
+        color: #155724;
+        margin-bottom: 10px;
+    }
+
+    .completion-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 25px;
+    }
+
+    .btn-view-essay {
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+    .
+    function saveParagraph(lockAndNext) {
+    // Send request to lock paragraph
+    fetch(`/essays/save_paragraph/${essayId}/`, {
+        method: 'POST',
+        body: JSON.stringify({
+            paragraph_number: currentParagraph,
+            content: content,
+            action: lockAndNext ? 'lock' : 'save'  // ← 'lock' triggers locking
+        })
+    })
+}
+// Grammar checking function
+function checkGrammar() {
+    const content = quill.root.innerHTML || document.getElementById('paragraphEditor').value;
+    
+    if (!content.trim()) {
+        alert('Please write something first!');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('grammarResults').style.display = 'block';
+    document.getElementById('grammarScore').innerHTML = '<p>Checking grammar and spelling...</p>';
+    
+    fetch('/check-grammar/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            text: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayGrammarResults(data.results);
+        } else {
+            document.getElementById('grammarScore').innerHTML = 
+                '<p style="color: #dc3545;">Error checking grammar. Please try again.</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('grammarScore').innerHTML = 
+            '<p style="color: #dc3545;">Network error. Please try again.</p>';
+    });
+}
+
+function displayGrammarResults(results) {
+    // Display grammar score
+    const grammarHTML = `
+        <h5>📊 Grammar & Spelling Score</h5>
+        <div style="display: flex; gap: 20px; margin-top: 10px;">
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold; color: ${results.grammar_score > 70 ? '#28a745' : '#dc3545'}">
+                    ${results.grammar_score}%
+                </div>
+                <small>Grammar</small>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold; color: ${results.spelling_score > 70 ? '#28a745' : '#dc3545'}">
+                    ${results.spelling_score}%
+                </div>
+                <small>Spelling</small>
+            </div>
+        </div>
+        <p style="margin-top: 10px; color: #666;">
+            Issues found: ${results.grammar_issues} grammar, ${results.spelling_issues} spelling
+        </p>
+    `;
+    
+    document.getElementById('grammarScore').innerHTML = grammarHTML;
+    
+    // Display spelling errors if any
+    if (results.misspelled_words && results.misspelled_words.length > 0) {
+        const spellingHTML = `
+            <h5>⚠️ Misspelled Words</h5>
+            <p style="color: #dc3545;">
+                ${results.misspelled_words.slice(0, 10).map(word => 
+                    `<span style="background: #ffe6e6; padding: 3px 8px; margin: 2px; border-radius: 3px;">${word}</span>`
+                ).join(' ')}
+                ${results.misspelled_words.length > 10 ? `... and ${results.misspelled_words.length - 10} more` : ''}
+            </p>
+        `;
+        document.getElementById('spellingErrors').innerHTML = spellingHTML;
+    } else {
+        document.getElementById('spellingErrors').innerHTML = 
+            '<p style="color: #28a745;">✅ No spelling errors found!</p>';
+    }
+}
+
+function getWritingTips() {
+    const tips = [
+        "Read your paragraph aloud to catch awkward phrasing",
+        "Use shorter sentences for better clarity",
+        "Check subject-verb agreement in each sentence",
+        "Avoid using the same word repeatedly - use synonyms",
+        "Make sure each paragraph has one main idea",
+        "Use transition words to connect your thoughts",
+        "Check punctuation, especially commas and periods",
+        "Remove unnecessary words to make your writing concise"
+    ];
+    
+    alert("✍️ Writing Tips:\n\n" + tips.join('\n• '));
+}

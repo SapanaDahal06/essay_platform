@@ -1,0 +1,361 @@
+{% extends 'essay/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - WriteVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f1f2f6;
+    }
+    
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+    }
+    
+    .card-icon i {
+        font-size: 24px;
+        color: white;
+    }
+    
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+    }
+    
+    .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 120px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        color: white;
+    }
+    
+    .action-btn.success {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+    
+    .action-btn.warning {
+        background: linear-gradient(135deg, #f39c12, #d35400);
+    }
+    
+    .action-btn.danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    
+    .essays-list {
+        margin-top: 20px;
+    }
+    
+    .essay-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+    
+    .essay-item:hover {
+        background: #e9ecef;
+    }
+    
+    .essay-info h4 {
+        margin: 0 0 5px 0;
+        font-family: 'Montserrat', sans-serif;
+        color: #2c3e50;
+    }
+    
+    .essay-meta {
+        display: flex;
+        gap: 15px;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+    }
+    
+    .essay-score {
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .score-high { background: #d4edda; color: #155724; }
+    .score-medium { background: #fff3cd; color: #856404; }
+    .score-low { background: #f8d7da; color: #721c24; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #bdc3c7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1>Welcome back, {{ user.username }}! 👋</h1>
+        <p>Track your progress, manage essays, and join competitions</p>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- User Stats Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="card-title">Your Stats</h3>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ profile.total_essays }}</div>
+                    <div class="stat-label">Essays Written</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ profile.avg_essay_score|floatformat:1 }}</div>
+                    <div class="stat-label">Avg Score</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ profile.total_likes_received }}</div>
+                    <div class="stat-label">Likes Received</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">#{{ rank|default:"--" }}</div>
+                    <div class="stat-label">Global Rank</div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <a href="{% url 'create_essay' %}" class="action-btn">
+                    <i class="fas fa-plus"></i> New Essay
+                </a>
+                <a href="{% url 'my_essays' %}" class="action-btn success">
+                    <i class="fas fa-file-alt"></i> My Essays
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Essays Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3 class="card-title">Recent Essays</h3>
+            </div>
+            
+            <div class="essays-list">
+                {% if essays %}
+                    {% for essay in essays %}
+                    <div class="essay-item">
+                        <div class="essay-info">
+                            <h4>{{ essay.title|truncatechars:40 }}</h4>
+                            <div class="essay-meta">
+                                <span>{{ essay.created_at|date:"M d" }}</span>
+                                <span>{{ essay.word_count }} words</span>
+                                <span class="badge">{{ essay.get_status_display }}</span>
+                            </div>
+                        </div>
+                        <div class="essay-score {% if essay.score >= 80 %}score-high{% elif essay.score >= 60 %}score-medium{% else %}score-low{% endif %}">
+                            {{ essay.score|default:"--"|floatformat:1 }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>No essays yet. Start writing!</p>
+                        <a href="{% url 'create_essay' %}" class="action-btn" style="margin-top: 15px;">
+                            <i class="fas fa-plus"></i> Write First Essay
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Competitions Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3 class="card-title">Active Competitions</h3>
+            </div>
+            
+            <div class="essays-list">
+                {% if competitions %}
+                    {% for comp in competitions %}
+                    <div class="essay-item">
+                        <div class="essay-info">
+                            <h4>{{ comp.title|truncatechars:40 }}</h4>
+                            <div class="essay-meta">
+                                <span>Ends: {{ comp.end_date|date:"M d" }}</span>
+                                <span>{{ comp.submission_count }} entries</span>
+                            </div>
+                        </div>
+                        <a href="{% url 'competition_detail' comp.id %}" class="action-btn" style="padding: 8px 15px; font-size: 0.9rem;">
+                            Join
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-trophy"></i>
+                        <p>No active competitions</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="quick-actions">
+                <a href="{% url 'competition_list' %}" class="action-btn warning">
+                    <i class="fas fa-flag"></i> View All
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Links Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="card-title">Quick Links</h3>
+            </div>
+            
+            <div class="quick-actions" style="flex-direction: column;">
+                <a href="{% url 'essay_list' %}" class="action-btn">
+                    <i class="fas fa-globe"></i> Browse Essays
+                </a>
+                <a href="{% url 'leaderboard' %}" class="action-btn success">
+                    <i class="fas fa-chart-bar"></i> Leaderboard
+                </a>
+                <a href="{% url 'community' %}" class="action-btn warning">
+                    <i class="fas fa-users"></i> Community
+                </a>
+                <a href="{% url 'profile' %}" class="action-btn">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'essay/base.html' %}
+
+{% block title %}My Essays{% endblock %}
+
+{% block content %}
+<h1>My Essays</h1>
+<ul>
+    {% for essay in essays %}
+        <li><a href="{% url 'essay_detail' essay.id %}">{{ essay.title }}</a></li>
+    {% empty %}
+        <li>No essays yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

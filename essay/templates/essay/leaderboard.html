@@ -1,0 +1,575 @@
+{% extends 'essay/base.html' %}
+{% load static %}
+
+{% block title %}Leaderboard - WriteVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .leaderboard-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    
+    .leaderboard-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .leaderboard-title {
+        font-size: 2.8rem;
+        color: #2C1810;
+        margin-bottom: 15px;
+        font-weight: 700;
+        position: relative;
+        display: inline-block;
+    }
+    
+    .leaderboard-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(90deg, #A0522D, #D2691E);
+        border-radius: 2px;
+    }
+    
+    .leaderboard-subtitle {
+        color: #8D6E63;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto 20px;
+    }
+    
+    /* Filter Tabs */
+    .filter-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 30px 0;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        padding: 12px 25px;
+        background: #f0e6dc;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        color: #5D4037;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .filter-tab:hover {
+        background: #e0d6cc;
+        transform: translateY(-2px);
+        color: #5D4037;
+        text-decoration: none;
+    }
+    
+    .filter-tab.active {
+        background: linear-gradient(135deg, #A0522D, #D2691E);
+        color: white;
+        box-shadow: 0 4px 15px rgba(160, 82, 45, 0.3);
+    }
+    
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0 40px;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border: 2px solid #f5f5f5;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #A0522D;
+        margin-bottom: 10px;
+    }
+    
+    .stat-label {
+        color: #8D6E63;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    
+    /* Leaderboard Table */
+    .leaderboard-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-top: 30px;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #2C1810, #5D4037);
+        color: white;
+        padding: 20px;
+    }
+    
+    .table-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .leaderboard-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .leaderboard-table thead {
+        background: #faf5f0;
+    }
+    
+    .leaderboard-table th {
+        padding: 18px 15px;
+        text-align: center;
+        font-weight: 600;
+        color: #2C1810;
+        border-bottom: 2px solid #e0e0e0;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .leaderboard-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.3s ease;
+    }
+    
+    .leaderboard-table tbody tr:hover {
+        background: #fcf9f5;
+    }
+    
+    .leaderboard-table td {
+        padding: 20px 15px;
+        text-align: center;
+        color: #424242;
+    }
+    
+    /* Rank Styles */
+    .rank-cell {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .rank-1 {
+        color: #FFD700;
+    }
+    
+    .rank-2 {
+        color: #C0C0C0;
+    }
+    
+    .rank-3 {
+        color: #CD7F32;
+    }
+    
+    /* Writer Cell */
+    .writer-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: flex-start;
+    }
+    
+    .writer-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #8D6E63, #A0522D);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .writer-info {
+        text-align: left;
+    }
+    
+    .writer-name {
+        font-weight: 600;
+        color: #2C1810;
+        margin-bottom: 2px;
+    }
+    
+    .writer-role {
+        font-size: 0.85rem;
+        color: #8D6E63;
+    }
+    
+    /* Score Cell */
+    .score-cell {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .score-high {
+        color: #4CAF50;
+    }
+    
+    .score-medium {
+        color: #FF9800;
+    }
+    
+    .score-low {
+        color: #F44336;
+    }
+    
+    /* Progress Bar */
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 8px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #8BC34A);
+        border-radius: 4px;
+    }
+    
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge-gold {
+        background: #FFF8E1;
+        color: #FF8F00;
+    }
+    
+    .badge-silver {
+        background: #F5F5F5;
+        color: #616161;
+    }
+    
+    .badge-bronze {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #8D6E63;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #E0E0E0;
+        margin-bottom: 20px;
+    }
+    
+    .empty-message {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    
+    /* Score Info Box */
+    .score-info {
+        text-align: center;
+        margin-top: 40px;
+        padding: 25px;
+        background: #faf5f0;
+        border-radius: 12px;
+    }
+    
+    .score-info h4 {
+        color: #5D4037;
+        margin-bottom: 15px;
+    }
+    
+    .score-breakdown {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .breakdown-item {
+        text-align: center;
+        max-width: 200px;
+    }
+    
+    .breakdown-percent {
+        font-size: 1.8rem;
+        color: #A0522D;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+    
+    .breakdown-title {
+        color: #5D4037;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .breakdown-desc {
+        font-size: 0.9rem;
+        color: #8D6E63;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .leaderboard-title {
+            font-size: 2.2rem;
+        }
+        
+        .filter-tabs {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .filter-tab {
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px 10px;
+            font-size: 0.9rem;
+        }
+        
+        .score-breakdown {
+            gap: 20px;
+        }
+        
+        .breakdown-item {
+            max-width: 150px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <!-- Header -->
+    <div class="leaderboard-header">
+        <h1 class="leaderboard-title">🏆 Writer Leaderboard</h1>
+        <p class="leaderboard-subtitle">Ranking writers based on essay quality, activity, and competition performance</p>
+    </div>
+    
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="?filter=all" class="filter-tab {% if filter_type == 'all' or not filter_type %}active{% endif %}">🏆 All Writers</a>
+        <a href="?filter=month" class="filter-tab {% if filter_type == 'month' %}active{% endif %}">📅 This Month</a>
+        <a href="?filter=week" class="filter-tab {% if filter_type == 'week' %}active{% endif %}">📆 This Week</a>
+        <a href="?filter=competition" class="filter-tab {% if filter_type == 'competition' %}active{% endif %}">⚡ Competition Writers</a>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_writers|default:"0" }}</div>
+            <div class="stat-label">Total Writers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_essays|default:"0" }}</div>
+            <div class="stat-label">Essays Submitted</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ avg_score|default:"0"|floatformat:1 }}</div>
+            <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ top_score|default:"0"|floatformat:1 }}</div>
+            <div class="stat-label">Top Score</div>
+        </div>
+    </div>
+    
+    <!-- Leaderboard Table -->
+    <div class="leaderboard-table">
+        <div class="table-header">
+            <h3><i class="fas fa-crown"></i> Top Writers</h3>
+        </div>
+        
+        {% if stats_list %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 10%">Rank</th>
+                        <th style="width: 25%">Writer</th>
+                        <th style="width: 15%">Essays</th>
+                        <th style="width: 20%">Avg Quality</th>
+                        <th style="width: 15%">Score</th>
+                        <th style="width: 15%">Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stats in stats_list %}
+                    <tr>
+                        <!-- Rank -->
+                        <td class="rank-cell">
+                            {% if forloop.counter == 1 %}
+                                <span class="rank-1">🥇 {{ forloop.counter }}</span>
+                            {% elif forloop.counter == 2 %}
+                                <span class="rank-2">🥈 {{ forloop.counter }}</span>
+                            {% elif forloop.counter == 3 %}
+                                <span class="rank-3">🥉 {{ forloop.counter }}</span>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Writer -->
+                        <td>
+                            <div class="writer-cell">
+                                <div class="writer-avatar">
+                                    {{ stats.user.username|first|upper }}
+                                </div>
+                                <div class="writer-info">
+                                    <div class="writer-name">{{ stats.user.username|title }}</div>
+                                    <div class="writer-role">
+                                        {% if forloop.counter <= 3 %}
+                                            <span class="badge badge-{% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
+                                                {% if forloop.counter == 1 %}Gold Winner{% elif forloop.counter == 2 %}Silver Winner{% else %}Bronze Winner{% endif %}
+                                            </span>
+                                        {% else %}
+                                            Writer
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Essays Count -->
+                        <td>
+                            <strong>{{ stats.total_essays }}</strong>
+                            <div style="font-size: 0.85rem; color: #8D6E63;">essays</div>
+                        </td>
+                        
+                        <!-- Average Quality -->
+                        <td>
+                            <strong>{{ stats.avg_essay_score|default:"0"|floatformat:1 }}%</strong>
+                        </td>
+                        
+                        <!-- Score -->
+                        <td class="score-cell {% if stats.leaderboard_score >= 80 %}score-high{% elif stats.leaderboard_score >= 50 %}score-medium{% else %}score-low{% endif %}">
+                            {{ stats.leaderboard_score|default:"0"|floatformat:1 }}
+                        </td>
+                        
+                        <!-- Progress Bar -->
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ stats.leaderboard_score|default:0 }}%; max-width: 100%;"></div>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #616161;">
+                                {{ stats.leaderboard_score|default:"0"|floatformat:0 }}%
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h3 class="empty-message">No writers on the leaderboard yet</h3>
+            <p style="color: #8D6E63; margin-bottom: 20px;">Be the first to submit an essay and appear here!</p>
+            <a href="{% url 'create_essay' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class="fas fa-pen"></i> Write Your First Essay
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Score Calculation Info -->
+    <div class="score-info">
+        <h4>📊 How Scores Are Calculated</h4>
+        <div class="score-breakdown">
+            <div class="breakdown-item">
+                <div class="breakdown-percent">40%</div>
+                <div class="breakdown-title">Essay Quality</div>
+                <div class="breakdown-desc">Average score of all submitted essays</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="breakdown-percent">30%</div>
+                <div class="breakdown-title">Activity Level</div>
+                <div class="breakdown-desc">Number and frequency of essays</div>
+            </div>
+            <div class="breakdown-item">
+                <div class="breakdown-percent">30%</div>
+                <div class="breakdown-title">Consistency</div>
+                <div class="breakdown-desc">Maintaining quality over time</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple JavaScript for better UX
+    document.addEventListener('DOMContentLoaded', function() {
+        // Smooth scroll for filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                if(this.classList.contains('active')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        // Highlight current user if logged in
+        const currentUsername = "{{ request.user.username }}";
+        if(currentUsername) {
+            document.querySelectorAll('.writer-name').forEach(nameElement => {
+                if(nameElement.textContent.trim().toLowerCase() === currentUsername.toLowerCase()) {
+                    nameElement.style.color = '#A0522D';
+                    nameElement.innerHTML = nameElement.textContent + ' <i class="fas fa-user" style="margin-left: 5px;"></i>';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

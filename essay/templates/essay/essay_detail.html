@@ -1,0 +1,206 @@
+{% extends 'essay/base.html' %}
+{% load static %}
+
+{% block title %}{{ essay.title }} - WriteVerse{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="essay-detail-card">
+        <h1 class="essay-title">{{ essay.title }}</h1>
+        
+        <div class="essay-meta">
+            <span class="author">By {{ essay.author.username }}</span>
+            <span class="date">{{ essay.created_at|date:"M d, Y" }}</span>
+            <span class="views">👁️ {{ essay.views }} views</span>
+            <span class="likes">❤️ {{ essay.likes.count }} likes</span>
+        </div>
+        
+        <div class="essay-content-box">
+            {{ essay.content|linebreaks }}
+        </div>
+        
+        <!-- PDF DOWNLOAD SECTION -->
+        <div class="pdf-download-section">
+            <h3>📄 Download This Essay</h3>
+            <a href="{% url 'download_pdf' essay.id %}" class="btn-download">
+                <i class="fas fa-file-pdf"></i> Download as PDF
+            </a>
+            <p class="help-text">Download a professionally formatted PDF with your username and essay content.</p>
+        </div>
+        
+        <div class="essay-actions">
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'like_essay' essay.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-like">
+                        {% if user in essay.likes.all %}❤️ Unlike{% else %}🤍 Like{% endif %}
+                    </button>
+                </form>
+            {% endif %}
+
+            <!-- Add this near the essay content -->
+<div class="mt-4">
+    <a href="{% url 'download_pdf' essay_id=essay.id %}" class="btn btn-primary">
+        <i class="fas fa-download"></i> Download PDF
+    </a>
+</div>
+            
+            {% if user == essay.author %}
+                <a href="{% url 'edit_essay' essay.id %}" class="btn-edit">✏️ Edit</a>
+                <a href="{% url 'grammar_check' essay.id %}" class="btn-grammar">🔍 Check Grammar</a>
+            {% endif %}
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h3>Comments ({{ comments|length }})</h3>
+            
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_comment' essay.id %}">
+                    {% csrf_token %}
+                    <textarea name="content" rows="3" placeholder="Write a comment..." class="comment-box"></textarea>
+                    <button type="submit" class="btn-comment">Post Comment</button>
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}">Login</a> to comment</p>
+            {% endif %}
+            
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <strong>{{ comment.author.username }}</strong>
+                        <small>{{ comment.created_at|timesince }} ago</small>
+                        <p>{{ comment.content }}</p>
+                    </div>
+                {% empty %}
+                    <p class="no-comments">No comments yet. Be the first!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- At the end of your essay_details.html file, just before the closing </body> tag -->
+{% block extra_js %}
+<script>
+// Add PDF download button dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const essayDetail = document.querySelector('.essay-content');
+    if (essayDetail) {
+        const essayId = window.location.pathname.split('/')[2];
+        const pdfButton = `
+            <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4><i class="fas fa-file-pdf"></i> Export Essay</h4>
+                <a href="/essays/${essayId}/download-pdf/" class="btn btn-danger">
+                    <i class="fas fa-download"></i> Download as PDF
+                </a>
+                <small class="text-muted d-block mt-2">Download a formatted PDF version of this essay</small>
+            </div>
+        `;
+        essayDetail.insertAdjacentHTML('afterend', pdfButton);
+    }
+});
+</script>
+{% endblock %}
+
+
+<style>
+.essay-detail-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+}
+.essay-title {
+    color: #2c3e50;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 10px;
+}
+.essay-meta {
+    color: #666;
+    margin: 1rem 0;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+.essay-content-box {
+    background: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    line-height: 1.8;
+    border-left: 4px solid #3498db;
+}
+.pdf-download-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    text-align: center;
+}
+.btn-download {
+    background: white;
+    color: #667eea;
+    padding: 12px 30px;
+    border-radius: 50px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 15px 0;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.btn-download:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    color: #667eea;
+    text-decoration: none;
+}
+.help-text {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+.essay-actions {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+.btn-like, .btn-edit, .btn-grammar, .btn-comment {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-like { background: #ff6b6b; color: white; }
+.btn-edit { background: #4ecdc4; color: white; }
+.btn-grammar { background: #45b7d1; color: white; }
+.btn-comment { background: #96ceb4; color: white; }
+.comment-box {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: inherit;
+}
+.comment {
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+.no-comments {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+</style>
+{% endblock %} 
