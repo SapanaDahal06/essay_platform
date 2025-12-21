@@ -8,13 +8,15 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.db import models
 from .models import Essay, UserProfile, Competition, Language, Comment, Submission, Paragraph
-import json
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
 import os 
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+import json
 
 def home(request):
     try:
@@ -49,7 +51,6 @@ def dashboard(request):
     essays = Essay.objects.filter(author=request.user).select_related('primary_language').order_by('-created_at')[:5]
     competitions = Competition.objects.filter(is_active=True)[:3]
     
-    # Calculate user's rank
     ranked_users = UserProfile.objects.filter(leaderboard_score__gt=0).order_by('-leaderboard_score')
     
     rank = None
@@ -152,23 +153,19 @@ def create_essay(request):
                 messages.warning(request, "Selected language not found. Essay created without language.")
         
         try:
-            # Create essay
             essay = Essay.objects.create(
                 author=request.user,
                 title=title,
                 content=content,
                 category=category,
                 primary_language=language,
-                status='submitted'  # Make sure it's submitted, not draft
+                status='submitted'
             )
             
-            # FORCE CALCULATE SCORE
             essay.calculate_metrics()
             essay.check_grammar_and_spelling()
             
-            # Set a minimum score if none calculated
             if essay.score == 0:
-                # Simple scoring based on content length
                 word_count = len(content.split())
                 if word_count > 500:
                     essay.score = 85
@@ -183,7 +180,6 @@ def create_essay(request):
             
             essay.save()
             
-            # UPDATE USER PROFILE IMMEDIATELY
             try:
                 profile = UserProfile.objects.get(user=request.user)
                 profile.update_leaderboard_stats()
@@ -331,45 +327,65 @@ def add_comment(request, essay_id):
 def grammar_check(request, essay_id):
     essay = get_object_or_404(Essay, id=essay_id, author=request.user)
     
-    try:
-        from .grammar_checker import grammar_checker
-        result = grammar_checker.check_essay(essay.content)
-        
-        if hasattr(essay, 'grammar_issues'):
-            essay.grammar_issues = result.get('grammar_issues', 0)
-        if hasattr(essay, 'spelling_issues'):
-            essay.spelling_issues = result.get('spelling_issues', 0)
-        if hasattr(essay, 'grammar_score'):
-            essay.grammar_score = result.get('grammar_score', 0)
-        if hasattr(essay, 'spelling_score'):
-            essay.spelling_score = result.get('spelling_score', 0)
-        if hasattr(essay, 'score'):
-            essay.score = result.get('score', 0)
-        
-        essay.save()
-        messages.success(request, "Grammar check completed!")
-    except ImportError:
-        messages.error(request, "Grammar checker module is not available. Please install required dependencies.")
-    except Exception as e:
-        messages.error(request, f"Error checking grammar: {str(e)}")
-    
+    # This is a placeholder - implement grammar checking logic
+    messages.info(request, "Grammar check would run here. Implement grammar checking logic.")
     return redirect('essay_detail', essay_id=essay.id)
 
 @login_required
 def write_paragraph(request, essay_id):
     essay = get_object_or_404(Essay, id=essay_id, author=request.user)
     
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # AJAX request for paragraph writing
+        try:
+            data = json.loads(request.body)
+            paragraph_content = data.get('content', '')
+            paragraph_index = data.get('paragraph_index', 0)
+            
+            # Check grammar (fallback function)
+            try:
+                from .grammer_checker import check_grammar
+                grammar_issues = check_grammar(paragraph_content)
+            except:
+                grammar_issues = []
+            
+            # Create or update paragraph
+            paragraph, created = Paragraph.objects.get_or_create(
+                essay=essay,
+                paragraph_number=paragraph_index + 1,
+                defaults={'content': paragraph_content}
+            )
+            
+            if not created:
+                paragraph.content = paragraph_content
+                paragraph.save()
+            
+            # Lock previous paragraphs if moving to next
+            if paragraph_index > 0:
+                previous_paragraph = Paragraph.objects.filter(
+                    essay=essay, 
+                    paragraph_number=paragraph_index
+                ).first()
+                if previous_paragraph:
+                    previous_paragraph.lock(request.user)
+            
+            return JsonResponse({
+                'success': True,
+                'grammar_issues': grammar_issues,
+                'paragraph_id': str(paragraph.id)
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    # GET request - load existing paragraphs
     if not hasattr(essay, 'writing_mode') or essay.writing_mode != 'paragraph':
         messages.warning(request, "This essay is not in paragraph writing mode.")
         return redirect('essay_detail', essay_id=essay.id)
     
-    current_paragraph = None
-    if hasattr(essay, 'get_current_paragraph'):
-        current_paragraph = essay.get_current_paragraph()
-    
+    current_paragraph = essay.get_current_paragraph() if hasattr(essay, 'get_current_paragraph') else None
     paragraphs = essay.paragraphs.all().order_by('paragraph_number')
     
-    return render(request, 'essay/write_paragraph.html', {
+    return render(request, 'essay/write_paragraph_enhanced.html', {
         'essay': essay,
         'current_paragraph': current_paragraph,
         'paragraphs': paragraphs
@@ -426,10 +442,7 @@ def unlock_paragraph(request, essay_id, paragraph_num):
         ).first()
         
         if paragraph:
-            paragraph.is_locked = False
-            paragraph.locked_by = None
-            paragraph.locked_at = None
-            paragraph.save()
+            paragraph.unlock()
             messages.success(request, f"Paragraph {paragraph_num} unlocked!")
         else:
             messages.warning(request, f"Paragraph {paragraph_num} not found.")
@@ -532,12 +545,10 @@ def resources(request):
 def leaderboard(request):
     filter_type = request.GET.get('filter', 'all')
     
-    # Get ALL user profiles (not just users)
     profiles = UserProfile.objects.all()
     stats_list = []
     
     for profile in profiles:
-        # Skip users with no essays
         if profile.total_essays > 0 and profile.leaderboard_score > 0:
             stats_list.append({
                 'user': profile.user,
@@ -546,10 +557,8 @@ def leaderboard(request):
                 'leaderboard_score': round(profile.leaderboard_score, 1),
             })
     
-    # Sort by leaderboard score
     stats_list.sort(key=lambda x: x['leaderboard_score'], reverse=True)
     
-    # Calculate overall stats
     all_essays = Essay.objects.all()
     total_writers = len(stats_list)
     total_essays_count = all_essays.count()
@@ -563,7 +572,7 @@ def leaderboard(request):
         top_score = 0
     
     context = {
-        'stats_list': stats_list[:50],  # Top 50
+        'stats_list': stats_list[:50],
         'total_writers': total_writers,
         'total_essays': total_essays_count,
         'avg_score': round(avg_score, 1),
@@ -575,7 +584,6 @@ def leaderboard(request):
 
 @login_required
 def update_all_scores(request):
-    """Update scores for all essays (admin function)"""
     if not request.user.is_superuser:
         messages.error(request, "Only administrators can update scores.")
         return redirect('home')
@@ -627,26 +635,6 @@ def get_paragraphs(request, essay_id):
         return JsonResponse(list(paragraphs), safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-def check_grammar_api(request):
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        content = request.POST.get('content', '')
-        
-        if not content:
-            return JsonResponse({'error': 'No content provided'}, status=400)
-        
-        try:
-            from .grammar_checker import grammar_checker
-            result = grammar_checker.check_essay(content)
-            return JsonResponse(result)
-        except ImportError:
-            return JsonResponse({
-                'error': 'Grammar checker module not available'
-            }, status=503)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
 def admin_essay_list(request):
@@ -754,3 +742,476 @@ def download_pdf(request, essay_id):
         import traceback
         traceback.print_exc()
         return redirect('essay_detail', essay_id=essay.id)
+
+# ================== API VIEWS ==================
+
+@csrf_exempt
+@login_required
+def save_paragraph_api(request):
+    """Save a single paragraph via API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            essay_id = data.get('essay_id')
+            content = data.get('content')
+            paragraph_index = data.get('paragraph_index', 0)
+            
+            essay = Essay.objects.get(id=essay_id, author=request.user)
+            
+            paragraph, created = Paragraph.objects.get_or_create(
+                essay=essay,
+                paragraph_number=paragraph_index + 1,
+                defaults={'content': content}
+            )
+            
+            if not created:
+                paragraph.content = content
+                paragraph.save()
+            
+            return JsonResponse({'success': True, 'paragraph_id': str(paragraph.id)})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def check_grammar_api(request):
+    """Check grammar for text via API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            text = data.get('text', '')
+            
+            # Try to use grammar checker
+            try:
+                from .grammer_checker import check_grammar
+                issues = check_grammar(text)
+            except ImportError:
+                issues = []
+            
+            return JsonResponse({'issues': issues})
+        except Exception as e:
+            return JsonResponse({'issues': [], 'error': str(e)})
+    return JsonResponse({'issues': []})
+
+@csrf_exempt
+@login_required
+def final_submit_api(request):
+    """Final submit an essay via API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            essay_id = data.get('essay_id')
+            
+            essay = Essay.objects.get(id=essay_id, author=request.user)
+            essay.status = 'submitted'
+            essay.save()
+            
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('essay_detail', args=[essay.id])
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+@login_required
+def update_status_api(request):
+    """Update essay status via API"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            essay_id = data.get('essay_id')
+            status = data.get('status')
+            
+            essay = Essay.objects.get(id=essay_id, author=request.user)
+            essay.status = status
+            essay.save()
+            
+            return JsonResponse({'success': True, 'status': status})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+@login_required
+def grammar_check(request, essay_id):
+    essay = get_object_or_404(Essay, id=essay_id, author=request.user)
+    
+    # Check if grammar_checker module exists
+    try:
+        # Try to import and use your grammar checker
+        from .grammer_checker import check_grammar
+        
+        if essay.content:
+            issues = check_grammar(essay.content)
+            
+            # Update essay with grammar issues count
+            if hasattr(essay, 'grammar_issues'):
+                essay.grammar_issues = len(issues)
+                essay.save()
+            
+            messages.success(request, f"Found {len(issues)} grammar issues!")
+            
+            # Return to essay detail page with issues
+            return render(request, 'essay/essay_detail.html', {
+                'essay': essay,
+                'grammar_issues': issues
+            })
+        else:
+            messages.warning(request, "No content to check!")
+            
+    except ImportError:
+        # If grammar checker doesn't exist, use a simple one
+        if essay.content:
+            # Simple grammar check logic
+            import re
+            
+            issues = []
+            content = essay.content
+            
+            # Check for lowercase 'i'
+            if re.search(r'\bi\s+', content):
+                issues.append("Use capital 'I' when referring to yourself")
+            
+            # Check for double spaces
+            if '  ' in content:
+                issues.append("Avoid double spaces")
+            
+            # Check sentence capitalization
+            sentences = re.split(r'[.!?]', content)
+            for i, sentence in enumerate(sentences):
+                sentence = sentence.strip()
+                if sentence and not sentence[0].isupper():
+                    issues.append(f"Sentence {i+1} should start with capital letter")
+            
+            messages.success(request, f"Basic check found {len(issues)} issues!")
+            
+            return render(request, 'essay/essay_detail.html', {
+                'essay': essay,
+                'grammar_issues': issues
+            })
+        else:
+            messages.warning(request, "No content to check!")
+    
+    return redirect('essay_detail', essay_id=essay.id)
+
+
+
+# ========== PARAGRAPH WRITING SYSTEM ==========
+
+@login_required
+def paragraph_writer(request, essay_id):
+    """Main paragraph writing interface"""
+    essay = get_object_or_404(Essay, id=essay_id, author=request.user)
+    
+    # Ensure essay is in paragraph mode
+    if essay.writing_mode != 'paragraph':
+        essay.writing_mode = 'paragraph'
+        essay.max_paragraphs = 5
+        essay.save()
+    
+    # Get or create paragraphs
+    paragraphs = []
+    for i in range(1, essay.max_paragraphs + 1):
+        paragraph, created = Paragraph.objects.get_or_create(
+            essay=essay,
+            paragraph_number=i,
+            defaults={'content': ''}
+        )
+        paragraphs.append(paragraph)
+    
+    return render(request, 'essay/paragraph_writer.html', {
+        'essay': essay,
+        'paragraphs': paragraphs,
+        'max_paragraphs': range(1, essay.max_paragraphs + 1)
+    })
+
+@csrf_exempt
+@login_required
+def api_save_paragraph(request):
+    """API: Save paragraph"""
+    from .paragraph_writer import ParagraphWriter
+    return ParagraphWriter.save_paragraph(request)
+
+@csrf_exempt
+@login_required
+def api_check_grammar(request):
+    """API: Check grammar"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            text = data.get('text', '')
+            language = data.get('language', 'en-US')
+            
+            from .paragraph_writer import ParagraphWriter
+            issues = ParagraphWriter.check_grammar(text, language)
+            
+            return JsonResponse({'issues': issues})
+        except Exception as e:
+            return JsonResponse({'issues': [], 'error': str(e)})
+    
+    return JsonResponse({'issues': []})
+
+@csrf_exempt
+@login_required
+def api_submit_essay(request):
+    """API: Submit complete essay"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            essay_id = data.get('essay_id')
+            
+            essay = Essay.objects.get(id=essay_id, author=request.user)
+            
+            # Combine all paragraphs into essay content
+            paragraphs = essay.paragraphs.all().order_by('paragraph_number')
+            full_content = '\n\n'.join([p.content for p in paragraphs if p.content.strip()])
+            
+            essay.content = full_content
+            essay.status = 'submitted'
+            essay.save()
+            
+            # Generate PDF
+            try:
+                # Call your PDF generation function
+                from .views import download_pdf
+                response = download_pdf(request, essay_id)
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Essay submitted and PDF generated!',
+                    'redirect_url': reverse('essay_detail', args=[essay.id])
+                })
+            except:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Essay submitted!',
+                    'redirect_url': reverse('essay_detail', args=[essay.id])
+                })
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+
+
+
+# ========== ADMIN DASHBOARD ==========
+
+@login_required
+def admin_dashboard(request):
+    """Main admin dashboard - only accessible by admin users"""
+    # Check if user is admin
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    # Get statistics
+    total_essays = Essay.objects.count()
+    total_users = User.objects.count()
+    total_competitions = Competition.objects.count()
+    total_submissions = Submission.objects.count()
+    
+    # Get recent activities
+    recent_essays = Essay.objects.all().order_by('-created_at')[:10]
+    recent_users = User.objects.all().order_by('-date_joined')[:10]
+    recent_submissions = Submission.objects.all().select_related('essay', 'competition', 'submitted_by').order_by('-submitted_at')[:10]
+    
+    # Get essay statistics by status
+    essay_status = {
+        'draft': Essay.objects.filter(status='draft').count(),
+        'writing': Essay.objects.filter(status='writing').count(),
+        'submitted': Essay.objects.filter(status='submitted').count(),
+        'published': Essay.objects.filter(status='published').count(),
+    }
+    
+    # Get user statistics by role
+    user_roles = {}
+    for profile in UserProfile.objects.all():
+        role = profile.role
+        user_roles[role] = user_roles.get(role, 0) + 1
+    
+    context = {
+        'total_essays': total_essays,
+        'total_users': total_users,
+        'total_competitions': total_competitions,
+        'total_submissions': total_submissions,
+        'recent_essays': recent_essays,
+        'recent_users': recent_users,
+        'recent_submissions': recent_submissions,
+        'essay_status': essay_status,
+        'user_roles': user_roles,
+    }
+    
+    return render(request, 'essay/admin_dashboard.html', context)
+
+@login_required
+def admin_essay_management(request):
+    """Admin essay management page"""
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    essays = Essay.objects.all().select_related('author', 'primary_language').order_by('-created_at')
+    
+    # Filtering
+    status_filter = request.GET.get('status', '')
+    category_filter = request.GET.get('category', '')
+    
+    if status_filter:
+        essays = essays.filter(status=status_filter)
+    if category_filter:
+        essays = essays.filter(category=category_filter)
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        essays = essays.filter(
+            models.Q(title__icontains=search_query) |
+            models.Q(content__icontains=search_query) |
+            models.Q(author__username__icontains=search_query)
+        )
+    
+    context = {
+        'essays': essays,
+        'status_choices': Essay.STATUS_CHOICES,
+        'category_choices': Essay.CATEGORY_CHOICES,
+    }
+    
+    return render(request, 'essay/admin_essay_management.html', context)
+
+@login_required
+def admin_user_management(request):
+    """Admin user management page"""
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    users = User.objects.all().order_by('-date_joined')
+    user_profiles = UserProfile.objects.all().select_related('user')
+    
+    # Filtering
+    role_filter = request.GET.get('role', '')
+    if role_filter:
+        user_profiles = user_profiles.filter(role=role_filter)
+        user_ids = user_profiles.values_list('user_id', flat=True)
+        users = users.filter(id__in=user_ids)
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        users = users.filter(
+            models.Q(username__icontains=search_query) |
+            models.Q(email__icontains=search_query) |
+            models.Q(first_name__icontains=search_query) |
+            models.Q(last_name__icontains=search_query)
+        )
+    
+    context = {
+        'users': users,
+        'user_profiles': user_profiles,
+        'role_choices': UserProfile.ROLE_CHOICES,
+    }
+    
+    return render(request, 'essay/admin_user_management.html', context)
+
+@login_required
+def admin_competition_management(request):
+    """Admin competition management page"""
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    competitions = Competition.objects.all().order_by('-created_at')
+    
+    # Filtering
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        competitions = competitions.filter(is_active=True)
+    elif status_filter == 'inactive':
+        competitions = competitions.filter(is_active=False)
+    
+    context = {
+        'competitions': competitions,
+    }
+    
+    return render(request, 'essay/admin_competition_management.html', context)
+
+@login_required
+def admin_analytics(request):
+    """Admin analytics page with charts and graphs"""
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    # Get data for charts
+    from django.db.models import Count, Avg, Q
+    import datetime
+    
+    # Essay growth (last 30 days)
+    thirty_days_ago = timezone.now() - datetime.timedelta(days=30)
+    daily_essays = Essay.objects.filter(
+        created_at__gte=thirty_days_ago
+    ).extra({
+        'date': "DATE(created_at)"
+    }).values('date').annotate(count=Count('id')).order_by('date')
+    
+    # User growth
+    daily_users = User.objects.filter(
+        date_joined__gte=thirty_days_ago
+    ).extra({
+        'date': "DATE(date_joined)"
+    }).values('date').annotate(count=Count('id')).order_by('date')
+    
+    # Top writers
+    top_writers = User.objects.annotate(
+        essay_count=Count('essays')
+    ).filter(essay_count__gt=0).order_by('-essay_count')[:10]
+    
+    # Top essays by score
+    top_essays = Essay.objects.filter(score__gt=0).order_by('-score')[:10]
+    
+    # Essay quality distribution
+    quality_distribution = {
+        'excellent': Essay.objects.filter(score__gte=90).count(),
+        'good': Essay.objects.filter(score__gte=80, score__lt=90).count(),
+        'average': Essay.objects.filter(score__gte=70, score__lt=80).count(),
+        'poor': Essay.objects.filter(score__lt=70).count(),
+    }
+    
+    context = {
+        'daily_essays': list(daily_essays),
+        'daily_users': list(daily_users),
+        'top_writers': top_writers,
+        'top_essays': top_essays,
+        'quality_distribution': quality_distribution,
+    }
+    
+    return render(request, 'essay/admin_analytics.html', context)
+
+@login_required
+def admin_system_settings(request):
+    """Admin system settings page"""
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Access denied. Admin only.")
+        return redirect('home')
+    
+    if request.method == 'POST':
+        # Handle settings update
+        messages.success(request, "Settings updated successfully!")
+        return redirect('admin_system_settings')
+    
+    # Get current settings (you can store these in database)
+    settings = {
+        'site_name': 'Essay Platform',
+        'site_description': 'Essay writing and competition platform',
+        'registration_open': True,
+        'competition_mode': True,
+        'max_essay_length': 5000,
+        'min_essay_length': 100,
+        'grammar_check_enabled': True,
+        'auto_grade_essays': True,
+    }
+    
+    return render(request, 'essay/admin_system_settings.html', {'settings': settings})

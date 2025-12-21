@@ -129,7 +129,7 @@ class Essay(models.Model):
     unique_words = models.IntegerField(default=0)
     sentence_count = models.IntegerField(default=0)
     avg_sentence_length = models.FloatField(default=0.0)
-    leaderboard_score = models.FloatField(default=0.0)  # FIXED: Added this field
+    leaderboard_score = models.FloatField(default=0.0)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -239,7 +239,7 @@ class Essay(models.Model):
             
             self.calculate_metrics()
             self.check_grammar_and_spelling()
-            self.leaderboard_score = self.score  # FIXED: Set leaderboard_score
+            self.leaderboard_score = self.score
         
         super().save(*args, **kwargs)
         
@@ -314,10 +314,11 @@ class Paragraph(models.Model):
             self.word_count = 0
         super().save(*args, **kwargs)
     
-    def lock(self, user):
+    def lock(self, user=None):
         self.is_locked = True
         self.locked_at = timezone.now()
-        self.locked_by = user
+        if user:
+            self.locked_by = user
         self.save()
     
     def unlock(self):
@@ -326,10 +327,12 @@ class Paragraph(models.Model):
         self.locked_at = None
         self.save()
     
-    def is_editable(self, user):
+    def is_editable(self, user=None):
         if not self.is_locked:
             return True
-        return self.locked_by == user
+        if user:
+            return self.locked_by == user
+        return False
     
     @property
     def is_empty(self):
