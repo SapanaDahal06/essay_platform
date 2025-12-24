@@ -39,10 +39,7 @@
                     <i class="fas fa-info-circle"></i>
                     <span>About</span>
                 </a>
-                <a href="{% url 'competition_list' %}" class="nav-link {% if 'competitions' in request.path %}active{% endif %}">
-                    <i class="fas fa-trophy"></i>
-                    <span>Competitions</span>
-                </a>
+              
                 <a href="{% url 'community' %}" class="nav-link {% if 'community' in request.path %}active{% endif %}">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
@@ -91,7 +88,6 @@
         <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobileMenu">
             <a href="{% url 'home' %}" class="mobile-nav-link"><i class="fas fa-home"></i><span>Home</span></a>
-            <a href="{% url 'competition_list' %}" class="mobile-nav-link"><i class="fas fa-trophy"></i><span>Competitions</span></a>
             <a href="{% url 'about' %}" class="mobile-nav-link"><i class="fas fa-info-circle"></i><span>About</span></a>
             <a href="{% url 'community' %}" class="mobile-nav-link"><i class="fas fa-users"></i><span>Community</span></a>
             <a href="{% url 'essay_list' %}" class="mobile-nav-link"><i class="fas fa-book"></i><span>Essays</span></a>
@@ -145,8 +141,9 @@
             <div class="footer-section">
                 <h4>Quick Links</h4>
                 <a href="{% url 'home' %}">Home</a>
-                <a href="{% url 'competition_list' %}">Competitions</a>
-                <a href="{% url 'essay_list' %}">Essays</a>
+            
+
+               <a href="{% url 'home' %}">Essays</a>
                 <a href="{% url 'leaderboard' %}">Leaderboard</a>
             </div>
             
@@ -154,7 +151,7 @@
                 <h4>Resources</h4>
                 <a href="{% url 'about' %}">About Us</a>
                 <a href="{% url 'community' %}">Community</a>
-                <a href="{% url 'resources' %}">Writing Tips</a>
+            
             </div>
             
             <div class="footer-section">
