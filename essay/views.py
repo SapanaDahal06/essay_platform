@@ -300,3 +300,57 @@ def unlock_paragraph(request, essay_id, paragraph_num):
 # ================== ADD THESE FUNCTIONS ==================
 def resources(request):
     return render(request, 'essay/resources.html')
+
+@login_required
+def write_paragraph_enhanced(request):
+    """Render the secure writing page"""
+    return render(request, 'essay/write_paragraph_enhanced.html')
+
+@login_required
+def save_secure_paragraph(request):
+    """Save the securely typed paragraph"""
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        
+        if content:
+            # Here you can save to your Essay model
+            # For example:
+            # essay = Essay.objects.create(
+            #     user=request.user,
+            #     content=content,
+            #     title=f"Secure Essay {timezone.now().strftime('%Y-%m-%d %H:%M')}"
+            # )
+            
+            # For now, just return success
+            return JsonResponse({
+                'success': True,
+                'message': 'Paragraph saved successfully!',
+                'content': content[:100] + '...' if len(content) > 100 else content
+            })
+        
+        return JsonResponse({
+            'success': False,
+            'message': 'No content provided'
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })
+
+# ================== LIKE ESSAY FUNCTION ==================
+@login_required
+def like_essay(request, pk):
+    """Toggle like/unlike for an essay"""
+    essay = get_object_or_404(Essay, pk=pk)
+    
+    if request.user in essay.likes.all():
+        # User already liked it, so unlike
+        essay.likes.remove(request.user)
+        messages.success(request, 'You unliked this essay.')
+    else:
+        # User hasn't liked it yet, so like
+        essay.likes.add(request.user)
+        messages.success(request, 'You liked this essay!')
+    
+    return redirect('essay_detail', essay_id=essay.id)

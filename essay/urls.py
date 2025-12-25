@@ -15,6 +15,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     
     path('essays/create/', views.create_essay, name='create_essay'),
+    path('essay/<uuid:pk>/like/', views.like_essay, name='like_essay'),
     path('essays/my/', views.my_essays, name='my_essays'),
     path('essays/<uuid:essay_id>/', views.essay_detail, name='essay_detail'),
     path('essays/<uuid:essay_id>/edit/', views.edit_essay, name='edit_essay'),
@@ -27,4 +28,6 @@ urlpatterns = [
     path('essays/<uuid:essay_id>/save-paragraph/', views.save_paragraph, name='save_paragraph'),
     path('essays/<uuid:essay_id>/unlock/<int:paragraph_num>/', views.unlock_paragraph, name='unlock_paragraph'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+     path('write-enhanced/', views.write_paragraph_enhanced, name='write_paragraph_enhanced'),
+    path('save-secure-paragraph/', views.save_secure_paragraph, name='save_secure_paragraph'),
 ]

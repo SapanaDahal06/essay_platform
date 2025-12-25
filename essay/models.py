@@ -1,8 +1,10 @@
+# essay/models.py - CORRECTED VERSION
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
 from django.utils import timezone
 import re
+
 
 class Language(models.Model):
     code = models.CharField(max_length=10, unique=True)
@@ -14,6 +16,7 @@ class Language(models.Model):
     
     class Meta:
         ordering = ['name']
+
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
@@ -68,6 +71,7 @@ class UserProfile(models.Model):
         self.last_score_update = timezone.now()
         self.save()
 
+
 class Essay(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -90,14 +94,21 @@ class Essay(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
+    
+    # Language reference
+    primary_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True, related_name='primary_essays')
+    
+    # Metrics
     word_count = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
-    pdf_file = models.FileField(upload_to='essays/pdfs/', blank=True, null=True)
-    pdf_generated_at = models.DateTimeField(blank=True, null=True)
-    primary_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True, related_name='primary_essays')
     likes = models.ManyToManyField(User, blank=True, related_name='liked_essays')
     
+    # PDF related
+    pdf_file = models.FileField(upload_to='essays/pdfs/', blank=True, null=True)
+    pdf_generated_at = models.DateTimeField(blank=True, null=True)
+    
+    # Scoring
     grammar_issues = models.PositiveIntegerField(default=0)
     spelling_issues = models.PositiveIntegerField(default=0)
     score = models.FloatField(default=0.0)
@@ -105,11 +116,14 @@ class Essay(models.Model):
     spelling_score = models.FloatField(default=0.0)
     content_score = models.FloatField(default=0.0)
     grade = models.CharField(max_length=5, blank=True, null=True)
+    
+    # Text analysis
     unique_words = models.IntegerField(default=0)
     sentence_count = models.IntegerField(default=0)
     avg_sentence_length = models.FloatField(default=0.0)
     leaderboard_score = models.FloatField(default=0.0)
     
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -166,9 +180,10 @@ class Essay(models.Model):
     def like_count(self):
         return self.likes.count()
 
+
 class Paragraph(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    essay = models.ForeignKey(Essay, on_delete=models.CASCADE, related_name='paragraphs')
+    essay = models.ForeignKey('Essay', on_delete=models.CASCADE, related_name='paragraphs')
     paragraph_number = models.PositiveIntegerField()
     content = models.TextField(blank=True)
     language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
@@ -193,8 +208,9 @@ class Paragraph(models.Model):
         self.is_locked = False
         self.save()
 
+
 class Comment(models.Model):
-    essay = models.ForeignKey(Essay, on_delete=models.CASCADE, related_name='comments')
+    essay = models.ForeignKey('Essay', on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
