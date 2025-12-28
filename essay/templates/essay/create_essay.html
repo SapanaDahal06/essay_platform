@@ -105,50 +105,6 @@
         box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     }
 
-    .writing-mode-selector {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .mode-option {
-        flex: 1;
-        padding: 20px;
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-align: center;
-    }
-
-    .mode-option:hover {
-        border-color: #667eea;
-        background: #f0f4ff;
-    }
-
-    .mode-option.selected {
-        border-color: #667eea;
-        background: #667eea;
-        color: white;
-    }
-
-    .mode-option i {
-        font-size: 2rem;
-        margin-bottom: 10px;
-        display: block;
-    }
-
-    .mode-option h4 {
-        margin: 0 0 5px 0;
-        font-size: 1.2rem;
-    }
-
-    .mode-option p {
-        margin: 0;
-        font-size: 0.9rem;
-        opacity: 0.8;
-    }
-
     .language-selector {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -217,21 +173,7 @@
     }
 
     #editor {
-        height: 400px;
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
-        background: white;
-    }
-
-    .ql-container {
-        font-size: 1.05rem;
-        line-height: 1.8;
-        height: 320px;
-    }
-
-    .ql-editor {
-        min-height: 320px;
-        height: 100%;
+        display: none; /* Hidden completely */
     }
 
     .editor-footer {
@@ -290,15 +232,152 @@
         border-left-color: #dc3545;
     }
 
-    .feature-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        background: #e9ecef;
+    /* === SECURE WRITING AREA === */
+    #secureWritingArea {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        background: #fafafa;
+        margin-top: 20px;
+    }
+
+    .secure-instructions {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
         color: #495057;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
+    }
+
+    .secure-instructions h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+
+    .secure-instructions ul {
+        margin: 10px 0 0 20px;
+        list-style: none;
+    }
+
+    .secure-instructions li {
+        margin: 8px 0;
+        padding-left: 25px;
+        position: relative;
+    }
+
+    .secure-instructions li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-weight: bold;
+    }
+
+    .paragraphs-container {
+        min-height: 300px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        font-size: 1.05rem;
+        line-height: 1.8;
+    }
+
+    .paragraph {
+        min-height: 28px;
+        padding: 15px;
+        margin: 12px 0;
+        border-radius: 8px;
+        line-height: 1.6;
+        outline: none;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+
+    .active-paragraph {
+        background: #f0f4ff;
+        border-left: 3px solid #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+
+    .active-paragraph:focus {
+        background: #fffde7;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+
+    .locked-paragraph {
+        background: #f8f9fa;
+        border-left: 3px solid #28a745;
+        color: #495057;
+        cursor: not-allowed;
+        position: relative;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .lock-icon {
+        float: right;
+        font-size: 12px;
+        opacity: 0.5;
         margin-left: 10px;
+    }
+
+    .writing-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: white;
+        font-weight: 600;
+    }
+
+    .writing-stats span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .security-warning {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ff6b6b;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        max-width: 350px;
+        font-weight: 600;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    .toast-message {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #667eea;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
     }
 </style>
 
@@ -306,7 +385,7 @@
     <div class="create-container">
         <div class="create-header">
             <h1>✍️ Create New Essay</h1>
-            <p>Choose your writing mode, select language, and start creating your masterpiece</p>
+            <p>Write in secure paragraph mode - paragraphs lock as you progress</p>
         </div>
 
         {% if messages %}
@@ -317,7 +396,7 @@
             {% endfor %}
         {% endif %}
 
-        <form method="post" id="essayForm">
+        <form method="post" id="essayForm" action="{% url 'create_essay' %}">
             {% csrf_token %}
             
             <div class="form-grid">
@@ -341,19 +420,22 @@
 
                     <div class="form-group">
                         <label>Writing Mode</label>
-                        <div class="writing-mode-selector">
-                            <div class="mode-option" data-mode="normal">
-                                <i>📝</i>
-                                <h4>Normal Mode</h4>
-                                <p>Write freely, edit anytime</p>
-                            </div>
-                            <div class="mode-option" data-mode="paragraph">
-                                <i>🔒</i>
-                                <h4>Paragraph Mode <span class="feature-badge">NEW</span></h4>
-                                <p>Paragraphs lock as you progress</p>
-                            </div>
+                        <div style="
+                            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                            border-left: 4px solid #667eea;
+                            padding: 20px;
+                            border-radius: 12px;
+                            margin-bottom: 20px;
+                            text-align: center;
+                        ">
+                            <h4 style="color: #667eea; margin-bottom: 10px;">
+                                <i class="fas fa-shield-alt"></i> Secure Paragraph Mode
+                            </h4>
+                            <p style="color: #495057; margin-bottom: 10px;">
+                                <strong>Rules:</strong> Paragraphs lock on Enter • No external copy/paste
+                            </p>
                         </div>
-                        <input type="hidden" id="writing_mode" name="writing_mode" value="normal">
+                        <input type="hidden" id="writing_mode" name="writing_mode" value="paragraph">
                     </div>
 
                     <div class="form-group">
@@ -375,7 +457,7 @@
                         <input type="hidden" id="language_id" name="language_id" value="{{ preferred_language.id|default:'' }}">
                     </div>
 
-                    <div id="paragraphSettings" class="paragraph-settings" style="display: none;">
+                    <div class="paragraph-settings">
                         <div class="form-group">
                             <label for="max_paragraphs">Number of Paragraphs</label>
                             <input 
@@ -389,7 +471,7 @@
                             >
                             <div class="paragraph-info">
                                 <i class="fas fa-info-circle"></i>
-                                Each paragraph will lock after you start writing the next one. You can't edit locked paragraphs.
+                                Press ENTER to lock a paragraph and start a new one.
                             </div>
                         </div>
                     </div>
@@ -414,8 +496,33 @@
 
                     <div class="form-group">
                         <label for="editor">Write Your Essay *</label>
-                        <div id="editor"></div>
+                        
+                        <!-- Secure Writing Area (Only Mode) -->
+                        <div id="secureWritingArea">
+                            <div class="secure-instructions">
+                                <h4><i class="fas fa-shield-alt"></i> Secure Writing Rules:</h4>
+                                <ul>
+                                    <li>Press <strong>ENTER</strong> to lock a paragraph</li>
+                                    <li>Locked paragraphs cannot be edited</li>
+                                    <li>No external copy/paste allowed</li>
+                                    <li>Focus on your thoughts and flow</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="paragraphsContainer" class="paragraphs-container">
+                                <div class="paragraph active-paragraph" contenteditable="true" spellcheck="false" data-paragraph="1"></div>
+                            </div>
+                            
+                            <div class="writing-stats">
+                                <span>Paragraphs: <span id="paraCount">1</span>/<span id="maxPara">5</span></span>
+                                <span>Words: <span id="secureWordCount">0</span></span>
+                                <span>Status: <span id="writingStatus">Ready</span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden Fields for Content -->
                         <input type="hidden" id="content" name="content">
+                        <input type="hidden" id="formatted_content" name="formatted_content">
                         
                         <div class="editor-footer">
                             <div class="word-count">
@@ -423,7 +530,7 @@
                             </div>
                             <div>
                                 <button type="button" id="formatHelp" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-question-circle"></i> Formatting Help
+                                    <i class="fas fa-question-circle"></i> Help
                                 </button>
                             </div>
                         </div>
@@ -432,8 +539,7 @@
                     <div class="form-group">
                         <div class="paragraph-info">
                             <i class="fas fa-lightbulb"></i>
-                            <strong>Tip:</strong> In Paragraph Mode, write your first paragraph here. 
-                            Additional paragraphs will be written one by one after this.
+                            <strong>Tip:</strong> Write freely without worrying about mistakes. Each paragraph locks as you progress.
                         </div>
                     </div>
                 </div>
@@ -441,194 +547,231 @@
 
             <div class="submit-container">
                 <button type="submit" class="submit-btn" id="submitBtn">
-                    <i class="fas fa-rocket"></i> Start Writing Journey
+                    <i class="fas fa-paragraph"></i> Create Essay
                 </button>
                 <div style="margin-top: 15px; color: #666; font-size: 0.9rem;">
-                    <i class="fas fa-shield-alt"></i> Your essay will be automatically saved and a PDF will be generated
+                    <i class="fas fa-shield-alt"></i> Your essay will be saved securely
                 </div>
             </div>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <script>
-    let quill;
-    let currentMode = 'normal';
-    let selectedLanguageId = '{{ preferred_language.id|default:"" }}';
-
-    // Initialize Quill Editor
-    function initQuill() {
-        if (!quill) {
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link'],
-                        ['clean']
-                    ]
-                },
-                placeholder: 'Start writing your essay here...'
-            });
-
-            // Update word count
-            quill.on('text-change', function() {
-                const text = quill.getText().trim();
-                const words = text ? text.split(/\s+/).length : 0;
-                document.getElementById('wordCount').textContent = words;
-            });
+// ================== SIMPLE SECURE WRITING JAVASCRIPT ==================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Secure paragraph mode initialized');
+    
+    // Initialize first paragraph
+    const firstPara = document.querySelector('#secureWritingArea .paragraph');
+    if (firstPara) firstPara.focus();
+    
+    // 1. PARAGRAPH LOCKING ON ENTER
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            const currentPara = document.querySelector('.paragraph[contenteditable="true"]:focus');
+            if (!currentPara) return;
+            
+            // Check if paragraph has content
+            if (currentPara.textContent.trim() === '') {
+                showToast('Write something before locking paragraph!');
+                return;
+            }
+            
+            // Check max paragraphs
+            const maxParas = parseInt(document.getElementById('max_paragraphs').value);
+            const currentCount = document.querySelectorAll('.paragraph').length;
+            if (currentCount >= maxParas) {
+                showToast(`Maximum ${maxParas} paragraphs reached!`);
+                return;
+            }
+            
+            // Lock current paragraph
+            currentPara.removeAttribute('contenteditable');
+            currentPara.classList.remove('active-paragraph');
+            currentPara.classList.add('locked-paragraph');
+            
+            // Add lock icon
+            const lockIcon = document.createElement('span');
+            lockIcon.className = 'lock-icon';
+            lockIcon.innerHTML = '🔒';
+            currentPara.appendChild(lockIcon);
+            
+            // Create new paragraph
+            const newPara = document.createElement('div');
+            newPara.className = 'paragraph active-paragraph';
+            newPara.setAttribute('contenteditable', 'true');
+            newPara.setAttribute('spellcheck', 'false');
+            newPara.innerHTML = '<br>';
+            
+            document.getElementById('paragraphsContainer').appendChild(newPara);
+            
+            // Focus on new paragraph
+            setTimeout(() => newPara.focus(), 10);
+            
+            // Update counters
+            updateCounters();
+            showToast('Paragraph locked! Start next one.');
         }
-    }
-
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        initQuill();
-        
-        // Writing mode selection
-        document.querySelectorAll('.mode-option').forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove selected class from all options
-                document.querySelectorAll('.mode-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                
-                // Add selected class to clicked option
-                this.classList.add('selected');
-                
-                // Update hidden input
-                currentMode = this.dataset.mode;
-                document.getElementById('writing_mode').value = currentMode;
-                
-                // Show/hide paragraph settings
-                const paragraphSettings = document.getElementById('paragraphSettings');
-                if (currentMode === 'paragraph') {
-                    paragraphSettings.style.display = 'block';
-                    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-paragraph"></i> Start Paragraph Writing';
-                } else {
-                    paragraphSettings.style.display = 'none';
-                    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-rocket"></i> Start Writing Journey';
-                }
-            });
-        });
-
-        // Language selection
-        document.querySelectorAll('.language-option').forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove selected class from all options
-                document.querySelectorAll('.language-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                
-                // Add selected class to clicked option
-                this.classList.add('selected');
-                
-                // Update hidden input
-                selectedLanguageId = this.dataset.languageId;
-                document.getElementById('language_id').value = selectedLanguageId;
-                
-                // Show language change message
-                const langName = this.querySelector('span').textContent;
-                showToast(`Language set to: ${langName}`);
-            });
-        });
-
-        // Format help button
-        document.getElementById('formatHelp').addEventListener('click', function() {
-            alert('Formatting Help:\n\n' +
-                  '• Use headings to organize your essay\n' +
-                  '• Use bold/italic for emphasis\n' +
-                  '• Use bullet points for lists\n' +
-                  '• Add links to references\n' +
-                  '• In Paragraph Mode, only current paragraph can be edited');
-        });
-
-        // Form submission
-        document.getElementById('essayForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const title = document.getElementById('title').value.trim();
-            const content = quill.root.innerHTML;
-            const textContent = quill.getText().trim();
-            
-            if (!title) {
-                alert('Please enter an essay title!');
-                document.getElementById('title').focus();
-                return;
-            }
-            
-            if (!textContent) {
-                alert('Please write your essay content!');
-                quill.focus();
-                return;
-            }
-            
-            if (currentMode === 'paragraph') {
-                const maxParagraphs = document.getElementById('max_paragraphs').value;
-                if (maxParagraphs < 3 || maxParagraphs > 20) {
-                    alert('Number of paragraphs must be between 3 and 20!');
-                    return;
-                }
-            }
-            
-            // Set the hidden content field
-            document.getElementById('content').value = content;
-            
-            // Show loading state
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Essay...';
-            submitBtn.disabled = true;
-            
-            // Submit the form
-            this.submit();
-        });
-
-        // Show default selected mode
-        document.querySelector('.mode-option[data-mode="normal"]').classList.add('selected');
     });
-
+    
+    // 2. BLOCK EXTERNAL COPY/PASTE
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();
+        showWarning('⚠️ External copy-paste disabled. Type your own content.');
+    });
+    
+    document.addEventListener('copy', function(e) {
+        // Allow copying only from active paragraphs
+        const target = e.target;
+        if (!target.classList.contains('paragraph') || 
+            target.classList.contains('locked-paragraph')) {
+            e.preventDefault();
+        }
+    });
+    
+    // 3. UPDATE COUNTERS ON INPUT
+    document.addEventListener('input', updateCounters);
+    
+    // 4. FORM SUBMISSION
+    document.getElementById('essayForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const title = document.getElementById('title').value.trim();
+        if (!title) {
+            alert('Please enter an essay title!');
+            document.getElementById('title').focus();
+            return;
+        }
+        
+        // Collect content from paragraphs
+        const paragraphs = document.querySelectorAll('#secureWritingArea .paragraph');
+        let plainText = [];
+        let htmlContent = [];
+        
+        paragraphs.forEach((para, index) => {
+            const text = para.textContent.replace('🔒', '').trim();
+            if (text) {
+                plainText.push(text);
+                // Get HTML content (preserves formatting)
+                let html = para.innerHTML.replace(/🔒/g, '').trim();
+                htmlContent.push(html);
+            }
+        });
+        
+        if (plainText.length === 0) {
+            alert('Please write some content in your essay!');
+            document.querySelector('#secureWritingArea .paragraph').focus();
+            return;
+        }
+        
+        // Set content fields
+        document.getElementById('content').value = plainText.join('\n\n');
+        document.getElementById('formatted_content').value = htmlContent.join('<br><br>');
+        
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+        
+        // Submit form
+        console.log('Submitting essay with formatted content');
+        setTimeout(() => {
+            this.submit();
+        }, 500);
+    });
+    
+    // 5. LANGUAGE SELECTION
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            const langId = this.dataset.languageId;
+            document.getElementById('language_id').value = langId;
+            
+            const langName = this.querySelector('span').textContent;
+            showToast(`Language: ${langName}`);
+        });
+    });
+    
+    // 6. FORMAT HELP
+    document.getElementById('formatHelp').addEventListener('click', function() {
+        alert('HOW TO WRITE:\n\n' +
+              '1. Type your paragraph\n' +
+              '2. Press ENTER to lock it\n' +
+              '3. A new paragraph will appear\n' +
+              '4. Repeat until done\n' +
+              '5. Click "Create Essay" to save\n\n' +
+              'NOTE: Locked paragraphs cannot be edited.');
+    });
+    
+    // 7. MAX PARAGRAPHS CHANGE
+    document.getElementById('max_paragraphs').addEventListener('change', function() {
+        document.getElementById('maxPara').textContent = this.value;
+    });
+    
+    // HELPER FUNCTIONS
+    function updateCounters() {
+        const paragraphs = document.querySelectorAll('#secureWritingArea .paragraph');
+        let totalWords = 0;
+        let lockedCount = 0;
+        
+        paragraphs.forEach(para => {
+            const text = para.textContent.replace('🔒', '').trim();
+            if (text) {
+                totalWords += text.split(/\s+/).length;
+                if (para.classList.contains('locked-paragraph')) {
+                    lockedCount++;
+                }
+            }
+        });
+        
+        // Update all counters
+        document.getElementById('secureWordCount').textContent = totalWords;
+        document.getElementById('wordCount').textContent = totalWords;
+        document.getElementById('paraCount').textContent = paragraphs.length;
+        
+        // Update status
+        const statusEl = document.getElementById('writingStatus');
+        if (lockedCount > 0) {
+            statusEl.textContent = `${lockedCount} locked`;
+            statusEl.style.color = '#28a745';
+        } else {
+            statusEl.textContent = 'Writing...';
+            statusEl.style.color = '#667eea';
+        }
+        
+        return totalWords;
+    }
+    
     function showToast(message) {
-        // Create toast element
         const toast = document.createElement('div');
         toast.className = 'toast-message';
         toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #667eea;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-        `;
-        
         document.body.appendChild(toast);
-        
-        // Remove after 3 seconds
         setTimeout(() => {
             toast.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+    
+    function showWarning(message) {
+        const warning = document.createElement('div');
+        warning.className = 'security-warning';
+        warning.textContent = message;
+        document.body.appendChild(warning);
+        setTimeout(() => {
+            warning.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => warning.remove(), 300);
         }, 3000);
     }
-
-    // Add CSS animations for toast
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
+    
+    // Initialize counters
+    updateCounters();
+});
 </script>
 {% endblock %}

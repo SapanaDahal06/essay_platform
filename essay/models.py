@@ -1,84 +1,30 @@
-# essay/models.py - CORRECTED VERSION
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 import uuid
-from django.utils import timezone
-import re
 
 
+# ================== LANGUAGE MODEL ==================
 class Language(models.Model):
-    code = models.CharField(max_length=10, unique=True)
-    name = models.CharField(max_length=50)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
     is_active = models.BooleanField(default=True)
-    
-    def __str__(self):
-        return self.name
     
     class Meta:
         ordering = ['name']
-
-
-class UserProfile(models.Model):
-    ROLE_CHOICES = [
-        ('student', 'Student'),
-        ('teacher', 'Teacher'),
-        ('admin', 'Admin'),
-        ('judge', 'Judge'),
-    ]
-    
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
-    student_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    date_of_birth = models.DateField(null=True, blank=True)
-    phone = models.CharField(max_length=15, blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
-    preferred_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
-    is_verified = models.BooleanField(default=False)
-    points = models.IntegerField(default=0)
-    
-    total_essays = models.IntegerField(default=0)
-    total_likes_received = models.IntegerField(default=0)
-    avg_essay_score = models.FloatField(default=0.0)
-    leaderboard_score = models.FloatField(default=0.0)
-    last_score_update = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.user.username} ({self.role})"
-    
-    class Meta:
-        ordering = ['user__username']
-    
-    def update_leaderboard_stats(self):
-        from django.db.models import Avg
-        
-        user_essays = Essay.objects.filter(author=self.user, score__gt=0)
-        
-        self.total_essays = user_essays.count()
-        self.avg_essay_score = user_essays.aggregate(avg=Avg('score'))['avg'] or 0
-        
-        total_likes = 0
-        for essay in user_essays:
-            total_likes += essay.likes.count()
-        self.total_likes_received = total_likes
-        
-        quality_score = self.avg_essay_score * 0.6
-        activity_score = min(40, (self.total_essays / 10) * 40)
-        
-        self.leaderboard_score = quality_score + activity_score
-        self.last_score_update = timezone.now()
-        self.save()
+        return f"{self.name} ({self.code})"
 
 
+# ================== ESSAY MODEL ==================
 class Essay(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
-        ('writing', 'Writing in Progress'),
         ('submitted', 'Submitted'),
         ('published', 'Published'),
-        ('archived', 'Archived'),
+        ('rejected', 'Rejected'),
     ]
     
     CATEGORY_CHOICES = [
@@ -89,135 +35,177 @@ class Essay(models.Model):
         ('creative', 'Creative Writing'),
     ]
     
+    WRITING_MODES = [
+        ('normal', 'Normal Mode'),
+        ('paragraph', 'Paragraph Mode'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='essays')
-    title = models.CharField(max_length=255)
-    content = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    title = models.CharField(max_length=200)
+    
+    # Content fields
+    content = models.TextField()  # Plain text version
+    formatted_content = models.TextField(blank=True)  # HTML version - ADDED
+    
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='essays')
+    
+    # Language and category
+    primary_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
     
-    # Language reference
-    primary_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True, related_name='primary_essays')
+    # Writing mode
+    writing_mode = models.CharField(max_length=20, choices=WRITING_MODES, default='paragraph')
     
-    # Metrics
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    # Statistics
     word_count = models.IntegerField(default=0)
+    grammar_score = models.FloatField(default=0)
+    spelling_score = models.FloatField(default=0)
+    content_score = models.FloatField(default=0)
+    score = models.FloatField(default=0)
+    grade = models.CharField(max_length=2, blank=True)
     views = models.IntegerField(default=0)
-    likes = models.ManyToManyField(User, blank=True, related_name='liked_essays')
     
     # PDF related
-    pdf_file = models.FileField(upload_to='essays/pdfs/', blank=True, null=True)
-    pdf_generated_at = models.DateTimeField(blank=True, null=True)
-    
-    # Scoring
-    grammar_issues = models.PositiveIntegerField(default=0)
-    spelling_issues = models.PositiveIntegerField(default=0)
-    score = models.FloatField(default=0.0)
-    grammar_score = models.FloatField(default=0.0)
-    spelling_score = models.FloatField(default=0.0)
-    content_score = models.FloatField(default=0.0)
-    grade = models.CharField(max_length=5, blank=True, null=True)
-    
-    # Text analysis
-    unique_words = models.IntegerField(default=0)
-    sentence_count = models.IntegerField(default=0)
-    avg_sentence_length = models.FloatField(default=0.0)
-    leaderboard_score = models.FloatField(default=0.0)
+    pdf_file = models.FileField(upload_to='essays/pdfs/', null=True, blank=True)
+    pdf_generated_at = models.DateTimeField(null=True, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Likes
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_essays', blank=True)
     
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Essays'
     
     def __str__(self):
-        return f"{self.title} by {self.author.username}"
+        return self.title
     
     def calculate_metrics(self):
-        if not self.content:
-            self.word_count = 0
-            self.sentence_count = 0
-            self.unique_words = 0
-            self.avg_sentence_length = 0.0
-            return
+        # Calculate word count from content
+        words = len(self.content.split())
+        self.word_count = words
         
-        try:
-            words = self.content.split()
-            self.word_count = len(words)
-            
-            sentences = [s.strip() for s in re.split(r'[.!?]+', self.content) if s.strip()]
-            self.sentence_count = len(sentences) if sentences else 0
-            
-            self.unique_words = len(set([w.lower().strip() for w in words if w.strip()]))
-            self.avg_sentence_length = round(self.word_count / self.sentence_count, 2) if self.sentence_count > 0 else 0.0
-        except Exception as e:
-            self.word_count = 0
-            self.sentence_count = 0
-            self.unique_words = 0
-            self.avg_sentence_length = 0.0
+        # Simple scoring (you can customize this)
+        self.grammar_score = min(100, words * 0.1)
+        self.spelling_score = min(100, words * 0.08)
+        self.content_score = min(100, words * 0.12)
+        self.score = (self.grammar_score + self.spelling_score + self.content_score) / 3
+        
+        # Determine grade
+        if self.score >= 90:
+            self.grade = 'A+'
+        elif self.score >= 80:
+            self.grade = 'A'
+        elif self.score >= 70:
+            self.grade = 'B'
+        elif self.score >= 60:
+            self.grade = 'C'
+        elif self.score >= 50:
+            self.grade = 'D'
+        else:
+            self.grade = 'F'
     
     def save(self, *args, **kwargs):
-        skip_checks = kwargs.pop('skip_checks', False)
-        
-        if not skip_checks:
-            self.calculate_metrics()
-            self.leaderboard_score = self.score
-        
+        self.calculate_metrics()
         super().save(*args, **kwargs)
-        
-        try:
-            if self.author.profile:
-                self.author.profile.update_leaderboard_stats()
-        except:
-            pass
-    
-    @property
-    def has_pdf(self):
-        return bool(self.pdf_file)
-    
-    @property
-    def like_count(self):
-        return self.likes.count()
 
 
+# ================== PARAGRAPH MODEL ==================
 class Paragraph(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    essay = models.ForeignKey('Essay', on_delete=models.CASCADE, related_name='paragraphs')
-    paragraph_number = models.PositiveIntegerField()
-    content = models.TextField(blank=True)
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
-    is_locked = models.BooleanField(default=False)
+    
+    # ForeignKey to Essay
+    essay = models.ForeignKey(Essay, on_delete=models.CASCADE, related_name='paragraphs')
+    
+    paragraph_number = models.IntegerField()
+    
+    # Content fields
+    content = models.TextField()  # Plain text
+    formatted_content = models.TextField(blank=True)  # HTML with formatting - ADDED
+    
     word_count = models.IntegerField(default=0)
+    is_locked = models.BooleanField(default=False)
     
-    class Meta:
-        unique_together = ['essay', 'paragraph_number']
-        ordering = ['paragraph_number']
-    
-    def __str__(self):
-        return f"Paragraph {self.paragraph_number} of {self.essay.title}"
-    
-    def save(self, *args, **kwargs):
-        if self.content:
-            self.word_count = len(self.content.split())
-        else:
-            self.word_count = 0
-        super().save(*args, **kwargs)
-    
-    def unlock(self):
-        self.is_locked = False
-        self.save()
-
-
-class Comment(models.Model):
-    essay = models.ForeignKey('Essay', on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['created_at']
+        ordering = ['paragraph_number']
+        unique_together = ['essay', 'paragraph_number']
     
     def __str__(self):
-        return f"Comment by {self.author.username} on '{self.essay.title}'"
+        return f"Paragraph {self.paragraph_number} of '{self.essay.title[:20]}...'"
+    
+    def save(self, *args, **kwargs):
+        # Calculate word count
+        self.word_count = len(self.content.split())
+        super().save(*args, **kwargs)
+
+
+# ================== COMMENT MODEL ==================
+class Comment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # ForeignKey to Essay
+    essay = models.ForeignKey(Essay, on_delete=models.CASCADE, related_name='comments')
+    
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Comment by {self.author} on '{self.essay.title[:20]}...'"
+
+
+# ================== USER PROFILE MODEL ==================
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+        ('admin', 'Administrator'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    
+    # Profile info
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    student_id = models.CharField(max_length=50, blank=True)
+    bio = models.TextField(blank=True)
+    
+    # Preferences
+    preferred_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Verification
+    is_verified = models.BooleanField(default=False)
+    
+    # Stats
+    points = models.IntegerField(default=0)
+    leaderboard_score = models.IntegerField(default=0)
+    essays_written = models.IntegerField(default=0)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-leaderboard_score']
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+    
+    def update_stats(self):
+        self.essays_written = Essay.objects.filter(author=self.user).count()
+        self.leaderboard_score = (self.essays_written * 10) + self.points
+        self.save()

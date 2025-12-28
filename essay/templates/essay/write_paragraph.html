@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html>
 <head>
     <title>Paragraph Writer - {{ essay.title }}</title>
@@ -306,4 +306,49 @@
         }, 30000);
     </script>
 </body>
-</html>
+</html> {% endcomment %}
+
+<!-- In templates/essay/write_paragraph.html -->
+{% extends 'essay/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <!-- Your existing header/title code -->
+    
+    <!-- Add instructions banner -->
+    <div class="alert alert-info secure-instructions">
+        <h5><i class="fas fa-shield-alt"></i> Secure Writing Mode</h5>
+        <ul class="mb-0">
+            <li><strong>Press Enter</strong> to lock a paragraph (cannot be edited after)</li>
+            <li><strong>External copy/paste is disabled</strong> - Type everything yourself</li>
+            <li><strong>Typing mistakes are hidden</strong> while you're typing</li>
+            <li>Focus on your thoughts, not corrections</li>
+        </ul>
+    </div>
+    
+    <!-- Your existing essay editor - make sure it has this structure -->
+    <div id="essay-editor" class="essay-editor" contenteditable="true">
+        {% if essay.content %}
+            <!-- Display existing content as locked paragraphs -->
+            {% for paragraph in essay.content|linebreaksbr|split_paragraphs %}
+            <p class="locked-paragraph">{{ paragraph }}</p>
+            {% endfor %}
+            <!-- Add one editable paragraph at the end -->
+            <p class="editable-paragraph" contenteditable="true"><br></p>
+        {% else %}
+            <p class="editable-paragraph" contenteditable="true">Start typing your essay here...</p>
+        {% endif %}
+    </div>
+    
+    <!-- Your existing buttons/save form -->
+    <form method="POST" id="essay-form">
+        {% csrf_token %}
+        <input type="hidden" name="content" id="essay-content">
+        <button type="submit" class="btn btn-primary">Save Essay</button>
+    </form>
+</div>
+
+<!-- Load the secure writing JavaScript -->
+<script src="{% static 'essay/js/secure_input.js' %}"></script>
+{% endblock %}

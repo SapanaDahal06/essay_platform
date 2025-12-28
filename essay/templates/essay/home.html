@@ -3,6 +3,10 @@
 
 {% block title %}Home - WriteVerse{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'essay/css/home.css' %}">
+{% endblock %}
+
 {% block content %}
     <!-- Hero Section -->
     <section class="hero-section">
@@ -269,4 +273,304 @@
             </div>
         </div>
     </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('WriteVerse Home Page Loaded');
+    
+    // 1. Animated Counter for Stats
+    function animateCounter(element, target, duration = 2000) {
+        let start = 0;
+        const increment = target / (duration / 16);
+        const timer = setInterval(() => {
+            start += increment;
+            if (start >= target) {
+                element.textContent = target + '+';
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(start) + '+';
+            }
+        }, 16);
+    }
+    
+    // Start counter animation when stats are visible
+    const statNumbers = document.querySelectorAll('.stat-number');
+    if (statNumbers.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const targetText = entry.target.textContent;
+                    const targetNumber = parseInt(targetText);
+                    animateCounter(entry.target, targetNumber);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        statNumbers.forEach(number => {
+            observer.observe(number);
+        });
+    }
+    
+    // 2. Add fade-in animation to cards when they come into view
+    const animatedElements = document.querySelectorAll('.step-card, .competition-card, .benefit-card');
+    
+    const fadeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                fadeObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    // Set initial state for animation
+    animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        fadeObserver.observe(el);
+    });
+    
+    // 3. Enhanced hover effects for competition cards
+    const competitionCards = document.querySelectorAll('.competition-card');
+    competitionCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+            this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // 4. Parallax effect for hero section
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection) {
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
+            heroSection.style.backgroundPosition = 'center ' + (rate + 50) + 'px';
+        });
+    }
+    
+    // 5. Floating animation for hero lightbulb
+    const heroIcon = document.querySelector('.hero-icon');
+    if (heroIcon) {
+        let floatDirection = 1;
+        let floatPosition = 0;
+        
+        function floatAnimation() {
+            floatPosition += floatDirection * 0.5;
+            if (floatPosition > 10) floatDirection = -1;
+            if (floatPosition < -10) floatDirection = 1;
+            
+            heroIcon.style.transform = `translateY(${floatPosition}px)`;
+            requestAnimationFrame(floatAnimation);
+        }
+        
+        // Start animation
+        floatAnimation();
+    }
+    
+    // 6. Button click animations
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Create ripple effect
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.7);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                width: ${size}px;
+                height: ${size}px;
+                top: ${y}px;
+                left: ${x}px;
+                pointer-events: none;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            // Remove ripple after animation
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+    
+    // Add ripple animation to CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 7. Update active nav link
+    function updateActiveNavLink() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+        
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            if (linkPath === currentPath || 
+                (currentPath === '/' && linkPath === '/home/') ||
+                (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                link.classList.add('active');
+                link.setAttribute('aria-current', 'page');
+            } else {
+                link.classList.remove('active');
+                link.removeAttribute('aria-current');
+            }
+        });
+    }
+    
+    // Call on load and when URL changes
+    updateActiveNavLink();
+    window.addEventListener('popstate', updateActiveNavLink);
+    
+    // 8. Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // 9. Newsletter form handling
+    const newsletterForm = document.querySelector('.cta-section form');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const emailInput = this.querySelector('input[type="email"]');
+            const email = emailInput.value.trim();
+            
+            if (email && validateEmail(email)) {
+                // Simulate submission
+                emailInput.value = '';
+                showNotification('Thank you for subscribing!', 'success');
+            } else {
+                showNotification('Please enter a valid email address', 'error');
+            }
+        });
+    }
+    
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add notification animations to CSS
+    const notificationStyle = document.createElement('style');
+    notificationStyle.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(notificationStyle);
+    
+    // 10. Initialize tooltips for icons
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(el => {
+        el.addEventListener('mouseenter', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = this.getAttribute('data-tooltip');
+            tooltip.style.cssText = `
+                position: absolute;
+                background: #333;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 4px;
+                font-size: 12px;
+                white-space: nowrap;
+                z-index: 100;
+                transform: translateY(-100%) translateX(-50%);
+                left: 50%;
+                margin-top: -10px;
+            `;
+            
+            this.style.position = 'relative';
+            this.appendChild(tooltip);
+        });
+        
+        el.addEventListener('mouseleave', function() {
+            const tooltip = this.querySelector('.tooltip');
+            if (tooltip) tooltip.remove();
+        });
+    });
+    
+    console.log('All home page scripts loaded successfully!');
+});
+</script>
 {% endblock %}

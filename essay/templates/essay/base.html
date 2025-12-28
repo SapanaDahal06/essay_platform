@@ -4,20 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}WriteVerse - Where Writers Compete{% endblock %}</title>
+    <title>{% block title %}WriteVerse - Where Writers Compete & Grow{% endblock %}</title>
 
-    <!-- Your original CSS only - NO Bootstrap -->
-    <link rel="stylesheet" href="{% static 'essay/css/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'essay/css/home.css' %}">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="{% static 'essay/css/styles.css' %}">
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation Bar (Your custom navbar stays exactly as before) -->
+    <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
             <!-- Logo -->
@@ -39,17 +40,16 @@
                     <i class="fas fa-info-circle"></i>
                     <span>About</span>
                 </a>
-              
+                {% comment %} <a href="{% url 'essay_list' %}" class="nav-link {% if 'essays' in request.path %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span>Essays</span>
+                </a> {% endcomment %}
                 <a href="{% url 'community' %}" class="nav-link {% if 'community' in request.path %}active{% endif %}">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
                 </a>
-                <a href="{% url 'essay_list' %}" class="nav-link {% if 'essays' in request.path %}active{% endif %}">
-                    <i class="fas fa-book"></i>
-                    <span>Essays</span>
-                </a>
                 <a href="{% url 'leaderboard' %}" class="nav-link {% if 'leaderboard' in request.path %}active{% endif %}">
-                    <i class="fas fa-graduation-cap"></i>
+                    <i class="fas fa-trophy"></i>
                     <span>Leaderboard</span>
                 </a>
             </div>
@@ -57,6 +57,11 @@
             <!-- User Actions -->
             <div class="nav-actions">
                 {% if user.is_authenticated %}
+                    <a href="{% url 'create_essay' %}" class="btn btn-primary create-essay-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Create Essay</span>
+                    </a>
+                    
                     <div class="user-dropdown">
                         <button class="user-btn">
                             <i class="fas fa-user-circle"></i>
@@ -64,17 +69,32 @@
                             <i class="fas fa-chevron-down dropdown-arrow"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a href="{% url 'dashboard' %}" class="dropdown-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                            <a href="{% url 'profile' %}" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
-                            <a href="{% url 'my_essays' %}" class="dropdown-item"><i class="fas fa-file-alt"></i> My Essays</a>
+                            <a href="{% url 'dashboard' %}" class="dropdown-item">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                            {% comment %} <a href="{% url 'profile' %}" class="dropdown-item">
+                                <i class="fas fa-user"></i> My Profile
+                            </a> {% endcomment %}
+                            {% comment %} <a href="{% url 'my_essays' %}" class="dropdown-item">
+                                <i class="fas fa-file-alt"></i> My Essays
+                            </a> {% endcomment %}
                             <div class="dropdown-divider"></div>
-                            <a href="{% url 'custom_logout' %}" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
                         </div>
                     </div>
                 {% else %}
-                    <a href="{% url 'custom_login' %}" class="btn btn-login">
+                    <a href="{% url 'login' %}" class="btn btn-login">
                         <i class="fas fa-sign-in-alt"></i>
                         <span>Login</span>
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Register</span>
                     </a>
                 {% endif %}
             </div>
@@ -87,34 +107,69 @@
 
         <!-- Mobile Menu -->
         <div class="mobile-menu" id="mobileMenu">
-            <a href="{% url 'home' %}" class="mobile-nav-link"><i class="fas fa-home"></i><span>Home</span></a>
-            <a href="{% url 'about' %}" class="mobile-nav-link"><i class="fas fa-info-circle"></i><span>About</span></a>
-            <a href="{% url 'community' %}" class="mobile-nav-link"><i class="fas fa-users"></i><span>Community</span></a>
-            <a href="{% url 'essay_list' %}" class="mobile-nav-link"><i class="fas fa-book"></i><span>Essays</span></a>
-            <a href="{% url 'leaderboard' %}" class="mobile-nav-link"><i class="fas fa-graduation-cap"></i><span>Leaderboard</span></a>
+            <a href="{% url 'home' %}" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'about' %}" class="mobile-nav-link">
+                <i class="fas fa-info-circle"></i>
+                <span>About</span>
+            </a>
+            <a href="{% url 'essay_list' %}" class="mobile-nav-link">
+                <i class="fas fa-book"></i>
+                <span>Essays</span>
+            </a>
+            <a href="{% url 'community' %}" class="mobile-nav-link">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+            <a href="{% url 'leaderboard' %}" class="mobile-nav-link">
+                <i class="fas fa-trophy"></i>
+                <span>Leaderboard</span>
+            </a>
 
-            {% if not user.is_authenticated %}
-                <div class="mobile-auth">
-                    <a href="{% url 'custom_login' %}" class="mobile-login-btn">Login</a>
+            {% if user.is_authenticated %}
+                <div class="mobile-user-menu">
+                    <a href="{% url 'create_essay' %}" class="mobile-nav-link highlight">
+                        <i class="fas fa-plus"></i>
+                        <span>Create Essay</span>
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="mobile-nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="mobile-nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="{% url 'my_essays' %}" class="mobile-nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>My Essays</span>
+                    </a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="mobile-nav-link logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </div>
             {% else %}
-                <div class="mobile-user-menu">
-                    <a href="{% url 'dashboard' %}" class="mobile-nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-                    <a href="{% url 'profile' %}" class="mobile-nav-link"><i class="fas fa-user"></i><span>Profile</span></a>
-                    <a href="{% url 'my_essays' %}" class="mobile-nav-link"><i class="fas fa-file-alt"></i><span>My Essays</span></a>
-                    <a href="{% url 'custom_logout' %}" class="mobile-nav-link logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <div class="mobile-auth">
+                    <a href="{% url 'login' %}" class="mobile-login-btn">Login</a>
+                    <a href="{% url 'register' %}" class="mobile-register-btn">Register</a>
                 </div>
             {% endif %}
         </div>
     </nav>
 
-    <!-- Main Content Area - NO Bootstrap container -->
+    <!-- Main Content -->
     <main class="main-content">
         {% if messages %}
             <div class="messages-container">
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }}">
-                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
                         {{ message }}
                         <button class="alert-close"><i class="fas fa-times"></i></button>
                     </div>
@@ -122,57 +177,64 @@
             </div>
         {% endif %}
 
-        {% block content %}{% endblock %}
+        {% block content %}
+        {% endblock %}
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <i class="fas fa-pen-nib"></i>
-                    <span>Write<span class="logo-highlight">Verse</span></span>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-pen-nib"></i>
+                        <span>Write<span class="logo-highlight">Verse</span></span>
+                    </div>
+                    <p class="footer-description">
+                        Where writers compete, improve, and showcase their talent. Join our community of passionate writers.
+                    </p>
                 </div>
-                <p class="footer-description">
-                    Where writers compete, improve, and showcase their talent. Join our community of passionate writers.
-                </p>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <a href="{% url 'home' %}">Home</a>
-            
-
-               <a href="{% url 'home' %}">Essays</a>
-                <a href="{% url 'leaderboard' %}">Leaderboard</a>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Resources</h4>
-                <a href="{% url 'about' %}">About Us</a>
-                <a href="{% url 'community' %}">Community</a>
-            
-            </div>
-            
-            <div class="footer-section">
-                <h4>Connect</h4>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-discord"></i></a>
+                
+                <div class="footer-section">
+                    <h4>Platform</h4>
+                    <a href="{% url 'home' %}">Home</a>
+                    <a href="{% url 'about' %}">About</a>
+                    <a href="{% url 'essay_list' %}">Essays</a>
+                    <a href="{% url 'leaderboard' %}">Leaderboard</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <a href="{% url 'community' %}">Community</a>
+                    <a href="{% url 'resources' %}">Writing Tips</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Help Center</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+                        <a href+"#" aria-label="TikTok"><i class="fab fa-TikTok"></i></a>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; <span id="currentYear"></span> WriteVerse. All rights reserved.</p>
+            
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> WriteVerse. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact Us</a>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <!-- Your original JS only - NO Bootstrap -->
-    <script src="{% static 'essay/js/scripts.js' %}"></script>
-    
+    <!-- JavaScript -->
     <script>
         // Set current year in footer
         document.getElementById('currentYear').textContent = new Date().getFullYear();
@@ -190,6 +252,7 @@
                 icon.classList.toggle('fa-times');
             });
 
+            // Close mobile menu when clicking outside
             document.addEventListener('click', function(event) {
                 if (!mobileMenu.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
                     mobileMenu.classList.remove('active');
@@ -203,16 +266,38 @@
         // Close alerts
         document.querySelectorAll('.alert-close').forEach(button => {
             button.addEventListener('click', function() {
-                this.parentElement.style.display = 'none';
+                this.parentElement.style.opacity = '0';
+                setTimeout(() => {
+                    this.parentElement.style.display = 'none';
+                }, 300);
             });
         });
 
         // Auto-hide alerts after 5 seconds
         setTimeout(function() {
             document.querySelectorAll('.alert').forEach(alert => {
-                alert.style.display = 'none';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
             });
         }, 5000);
+
+        // User dropdown toggle
+        document.querySelectorAll('.user-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = this.nextElementSibling;
+                dropdown.classList.toggle('show');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        });
     </script>
 
     {% block extra_js %}{% endblock %}
