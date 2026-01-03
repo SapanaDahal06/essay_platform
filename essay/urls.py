@@ -45,4 +45,19 @@ urlpatterns = [
     
     # Admin
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-]
+
+    
+    # Review URLs
+    path('review-essays/', views.review_essays, name='review_essays'),
+    path('review-essay/<uuid:essay_id>/', views.review_essay_detail, name='review_essay_detail'),
+    path('verify-essay/<uuid:essay_id>/', views.verify_essay, name='verify_essay'),
+    
+    # Tools
+    path('grammar-check/<uuid:essay_id>/', views.grammar_check_tool, name='grammar_check_tool'),
+    path('spell-check/<uuid:essay_id>/', views.spell_check_tool, name='spell_check_tool'),
+    path('auto-check/<uuid:essay_id>/', views.auto_check_essay, name='auto_check_essay'),
+    
+    
+    
+] 
+

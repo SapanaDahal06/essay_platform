@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Essay Review Dashboard</h2>
+    
+    <!-- Pending Reviews -->
+    <div class="card mt-4">
+        <div class="card-header bg-warning">
+            <h4>Essays Pending Review</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_essays %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Submitted</th>
+                                <th>Word Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for essay in pending_essays %}
+                            <tr>
+                                <td>{{ essay.title }}</td>
+                                <td>{{ essay.author.username }}</td>
+                                <td>{{ essay.created_at|timesince }} ago</td>
+                                <td>{{ essay.word_count }}</td>
+                                <td>
+                                    <a href="{% url 'review_essay_detail' essay.id %}" class="btn btn-primary btn-sm">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No essays pending review.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recently Reviewed -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h4>Recently Reviewed</h4>
+        </div>
+        <div class="card-body">
+            {% if reviewed_essays %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Reviewed By</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for essay in reviewed_essays %}
+                            <tr>
+                                <td>{{ essay.title }}</td>
+                                <td>{{ essay.author.username }}</td>
+                                <td>{{ essay.reviewed_by.username }}</td>
+                                <td>{{ essay.overall_score|floatformat:1 }}/100</td>
+                                <td>
+                                    {% if essay.is_verified %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Reviewed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No essays reviewed yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Essay Content -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Essay: {{ essay.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Author:</strong> {{ essay.author.username }}</p>
+                    <p><strong>Word Count:</strong> {{ word_count }}</p>
+                    <p><strong>Avg Sentence Length:</strong> {{ avg_sentence_length }} words</p>
+                    
+                    <div class="mt-3">
+                        <h5>Content:</h5>
+                        <div class="border p-3" style="max-height: 400px; overflow-y: auto;">
+                            {{ essay.content|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Auto Analysis -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5>Auto Analysis</h5>
+                </div>
+                <div class="card-body">
+                    {% if grammar_issues %}
+                        <h6>Potential Grammar Issues:</h6>
+                        <ul>
+                            {% for issue, count in grammar_issues.items %}
+                                {% if count > 0 %}
+                                    <li>{{ issue|title }}: {{ count }} potential instances</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    {% if spelling_issues %}
+                        <h6>Common Misspellings:</h6>
+                        <ul>
+                            {% for wrong, correct in spelling_issues.items %}
+                                <li><strong>{{ wrong }}</strong> → {{ correct }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Review Form -->
+        <div class="col-md-6">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4>Review Form</h4>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Grammar Feedback -->
+                        <div class="mb-3">
+                            <label class="form-label">Grammar Errors:</label>
+                            <textarea name="grammar_errors" class="form-control" rows="3" 
+                                      placeholder="List specific grammar errors...">{{ essay.grammar_errors }}</textarea>
+                        </div>
+                        
+                        <!-- Spelling Feedback -->
+                        <div class="mb-3">
+                            <label class="form-label">Spelling Errors:</label>
+                            <textarea name="spelling_errors" class="form-control" rows="3" 
+                                      placeholder="List spelling mistakes...">{{ essay.spelling_errors }}</textarea>
+                        </div>
+                        
+                        <!-- Structure Feedback -->
+                        <div class="mb-3">
+                            <label class="form-label">Structure Comments:</label>
+                            <textarea name="structure_comments" class="form-control" rows="3" 
+                                      placeholder="Feedback on essay structure...">{{ essay.structure_comments }}</textarea>
+                        </div>
+                        
+                        <!-- Content Feedback -->
+                        <div class="mb-3">
+                            <label class="form-label">Content Feedback:</label>
+                            <textarea name="content_feedback" class="form-control" rows="3" 
+                                      placeholder="Feedback on content and ideas...">{{ essay.content_feedback }}</textarea>
+                        </div>
+                        
+                        <!-- Suggestions -->
+                        <div class="mb-3">
+                            <label class="form-label">Style Suggestions:</label>
+                            <textarea name="style_suggestions" class="form-control" rows="2" 
+                                      placeholder="Writing style suggestions...">{{ essay.style_suggestions }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Vocabulary Suggestions:</label>
+                            <textarea name="vocabulary_suggestions" class="form-control" rows="2" 
+                                      placeholder="Vocabulary improvement suggestions...">{{ essay.vocabulary_suggestions }}</textarea>
+                        </div>
+                        
+                        <!-- Quick Templates -->
+                        <div class="mb-3">
+                            <label class="form-label">Quick Templates:</label>
+                            <select class="form-select" onchange="addTemplate(this.value)">
+                                <option value="">Select a template...</option>
+                                {% for template in review_templates %}
+                                    <option value="{{ template.description }}">
+                                        {{ template.category }}: {{ template.title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">Submit Review</button>
+                        <a href="{% url 'verify_essay' essay.id %}" class="btn btn-primary">
+                            Verify & Publish
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addTemplate(text) {
+    if (text) {
+        // Add to content feedback
+        let feedback = document.querySelector('textarea[name="content_feedback"]');
+        feedback.value += (feedback.value ? '\n\n' : '') + text;
+    }
+}
+</script>
+{% endblock %}

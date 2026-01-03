@@ -12,8 +12,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph as PDFParagraph, Spacer
 import json
-from django.db.models import Count 
-from .models import Essay, UserProfile, Language, Comment, Paragraph
+import re  # Add this import
+from django.db.models import Count, Q
+from .models import Essay, UserProfile, Language, Comment, Paragraph, ReviewTemplate, Notification  # Add missing imports
 
 # ================== BASIC PAGES ==================
 def home(request):
@@ -114,22 +115,37 @@ def dashboard(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     essays = Essay.objects.filter(author=request.user).order_by('-created_at')[:5]
     
-    ranked_users = UserProfile.objects.filter(leaderboard_score__gt=0).order_by('-leaderboard_score')
+    # Get all users with their published essay counts
+    all_users = User.objects.annotate(
+        published_essays=Count('essays', filter=Q(essays__status='published'))
+    ).order_by('-published_essays')
+    
+    # Find user's rank
     rank = None
-    for idx, user_profile in enumerate(ranked_users, start=1):
-        if user_profile.user == request.user:
+    for idx, user in enumerate(all_users, start=1):
+        if user == request.user:
             rank = idx
             break
+    
+    # Calculate user's score based on essays and activity
+    published_count = Essay.objects.filter(author=request.user, status='published').count()
+    draft_count = Essay.objects.filter(author=request.user, status='draft').count()
     
     return render(request, 'essay/dashboard.html', {
         'profile': profile,
         'essays': essays,
-        'rank': rank
+        'rank': rank,
+        'published_count': published_count,
+        'draft_count': draft_count,
     })
 
 def leaderboard(request):
     """Leaderboard page"""
-    profiles = UserProfile.objects.filter(leaderboard_score__gt=0).order_by('-leaderboard_score')
+    # Calculate leaderboard based on published essays count
+    profiles = UserProfile.objects.annotate(
+        essay_count=Count('user__essays', filter=Q(user__essays__status='published'))
+    ).order_by('-essay_count')
+    
     return render(request, 'essay/leaderboard.html', {'profiles': profiles})
 
 # ================== ESSAY CRUD ==================
@@ -257,24 +273,47 @@ def download_pdf(request, essay_id):
     story.append(PDFParagraph(f"By: {essay.author.username}", styles['Normal']))
     story.append(Spacer(1, 12))
     
-    # Add content
+    # Clean HTML content before adding to PDF
+    def clean_html_for_pdf(text):
+        """Remove unsupported HTML tags for PDF generation"""
+        if not text:
+            return ""
+        
+        # Remove HTML tags that reportlab doesn't support
+        text = re.sub(r'<span[^>]*>.*?</span>', '', text)  # Remove span tags
+        text = re.sub(r'<br\s*/?>', '\n', text)  # Replace <br> with newline
+        text = re.sub(r'&nbsp;', ' ', text)  # Replace &nbsp; with space
+        text = re.sub(r'<[^>]+>', '', text)  # Remove any remaining HTML tags
+        text = re.sub(r'\n\s*\n', '\n\n', text)  # Normalize multiple newlines
+        return text.strip()
+    
+    # Get and clean content
     content = essay.formatted_content or essay.content
-    paragraphs = content.split('\n\n') if '\n\n' in content else content.split('\n')
+    clean_content = clean_html_for_pdf(content)
+    
+    # Split into paragraphs
+    paragraphs = [p.strip() for p in clean_content.split('\n\n') if p.strip()]
     
     for para in paragraphs:
-        if para.strip():
-            story.append(PDFParagraph(para.strip(), styles['Normal']))
+        if para:
+            # Replace multiple spaces with single space
+            para = re.sub(r'\s+', ' ', para)
+            story.append(PDFParagraph(para, styles['Normal']))
             story.append(Spacer(1, 6))
     
     # Build PDF
-    doc.build(story)
-    pdf_data = buffer.getvalue()
-    buffer.close()
-    
-    # Return PDF as response
-    response = HttpResponse(pdf_data, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{essay.title}.pdf"'
-    return response
+    try:
+        doc.build(story)
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        # Return PDF as response
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{essay.title}.pdf"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('essay_detail', essay_id=essay.id)
 
 # ================== GRAMMAR CHECK ==================
 @login_required
@@ -445,3 +484,370 @@ def like_essay(request, pk):
     
     messages.success(request, message)
     return redirect('essay_detail', essay_id=essay.id)
+
+# ================== ESSAY REVIEW ==================
+@login_required
+def review_essays(request):
+    """List essays for review (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to review essays.")
+        return redirect('home')
+    
+    # Get essays pending review
+    pending_essays = Essay.objects.filter(
+        status='submitted',
+        is_reviewed=False
+    ).order_by('created_at')
+    
+    # Get recently reviewed essays
+    reviewed_essays = Essay.objects.filter(
+        is_reviewed=True
+    ).order_by('-reviewed_at')[:10]
+    
+    return render(request, 'essay/review_essays.html', {
+        'pending_essays': pending_essays,
+        'reviewed_essays': reviewed_essays,
+    })
+
+@login_required
+def review_essay_detail(request, essay_id):
+    """Detailed review of an essay"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to review essays.")
+        return redirect('home')
+    
+    essay = get_object_or_404(Essay, id=essay_id)
+    
+    # Get review templates for suggestions
+    review_templates = ReviewTemplate.objects.filter(is_active=True)
+    
+    # Analyze essay content for common errors
+    content = essay.content
+    word_count = len(content.split())
+    
+    # Simple analysis
+    sentences = re.split(r'[.!?]+', content)
+    avg_sentence_length = word_count / max(len(sentences), 1)
+    
+    # Common grammar patterns to check
+    grammar_patterns = {
+        'run_on_sentences': r'[.!?]\s*[a-z]',  # Sentences starting with lowercase
+        'comma_splices': r',\s+[a-z]',  # Comma followed by lowercase (potential splice)
+        'fragments': r'^[a-z].*[^.!?]$',  # Starts lowercase, doesn't end with punctuation
+    }
+    
+    grammar_issues = {}
+    for issue, pattern in grammar_patterns.items():
+        matches = re.findall(pattern, content, re.MULTILINE)
+        grammar_issues[issue] = len(matches)
+    
+    # Simple spelling check (basic)
+    common_misspellings = {
+        'seperate': 'separate',
+        'definately': 'definitely',
+        'occured': 'occurred',
+        'recieve': 'receive',
+        'wierd': 'weird',
+        'accomodate': 'accommodate',
+        'embarass': 'embarrass',
+        'mispell': 'misspell'
+    }
+    
+    spelling_issues = {}
+    words = content.lower().split()
+    for word in words:
+        clean_word = re.sub(r'[^\w\s]', '', word)
+        if clean_word in common_misspellings:
+            spelling_issues[clean_word] = common_misspellings[clean_word]
+    
+    if request.method == 'POST':
+        # Save review feedback
+        essay.grammar_errors = request.POST.get('grammar_errors', '')
+        essay.spelling_errors = request.POST.get('spelling_errors', '')
+        essay.punctuation_errors = request.POST.get('punctuation_errors', '')
+        essay.style_suggestions = request.POST.get('style_suggestions', '')
+        essay.vocabulary_suggestions = request.POST.get('vocabulary_suggestions', '')
+        essay.structure_comments = request.POST.get('structure_comments', '')
+        essay.content_feedback = request.POST.get('content_feedback', '')
+        
+        # Calculate scores based on feedback
+        essay.grammar_score = max(0, 100 - (len(essay.grammar_errors.split(',')) * 5))
+        essay.spelling_score = max(0, 100 - (len(essay.spelling_errors.split(',')) * 10))
+        
+        # Update overall score
+        essay.overall_score = (essay.grammar_score * 0.3 + 
+                              essay.spelling_score * 0.3 + 
+                              essay.content_score * 0.4)
+        
+        # Mark as reviewed
+        essay.is_reviewed = True
+        essay.reviewed_by = request.user
+        essay.reviewed_at = timezone.now()
+        essay.save()
+        
+        # Send notification to author
+        Notification.objects.create(
+            user=essay.author,
+            notification_type='system',
+            title='Your Essay Has Been Reviewed! 📝',
+            message=f'Your essay "{essay.title}" has been reviewed by an admin.',
+            is_important=True
+        )
+        
+        messages.success(request, "Essay review submitted successfully!")
+        return redirect('review_essays')
+    
+    return render(request, 'essay/review_essay_detail.html', {
+        'essay': essay,
+        'review_templates': review_templates,
+        'word_count': word_count,
+        'avg_sentence_length': round(avg_sentence_length, 1),
+        'grammar_issues': grammar_issues,
+        'spelling_issues': spelling_issues,
+    })
+
+@login_required
+def verify_essay(request, essay_id):
+    """Mark essay as verified"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to verify essays.")
+        return redirect('home')
+    
+    essay = get_object_or_404(Essay, id=essay_id)
+    
+    if request.method == 'POST':
+        essay.is_verified = True
+        essay.verified_by = request.user
+        essay.verified_at = timezone.now()
+        essay.status = 'published'
+        essay.save()
+        
+        # Send notification
+        Notification.objects.create(
+            user=essay.author,
+            notification_type='achievement',
+            title='Essay Verified! ✅',
+            message=f'Congratulations! Your essay "{essay.title}" has been verified and published.',
+            is_important=True
+        )
+        
+        messages.success(request, "Essay verified and published!")
+        return redirect('review_essays')
+    
+    return render(request, 'essay/verify_essay.html', {'essay': essay})
+
+# ================== GRAMMAR & SPELLING TOOLS ==================
+@login_required
+def grammar_check_tool(request, essay_id):
+    """Advanced grammar check tool"""
+    essay = get_object_or_404(Essay, id=essay_id, author=request.user)
+    
+    # You can integrate with external APIs here
+    # For example: LanguageTool, Grammarly API, etc.
+    
+    return render(request, 'essay/grammar_check_tool.html', {
+        'essay': essay,
+    })
+
+
+
+
+
+@login_required
+def spell_check_tool(request, essay_id):
+    """Spell check tool"""
+    essay = get_object_or_404(Essay, id=essay_id, author=request.user)
+    
+    try:
+        # Try to import nltk and download data
+        import nltk
+        from nltk.corpus import words
+        
+        # Download words corpus if not available
+        try:
+            nltk.data.find('corpora/words')
+        except LookupError:
+            # Download the words corpus
+            nltk.download('words', quiet=True)
+        
+        word_list = set(words.words())
+        content_words = essay.content.lower().split()
+        
+        # Find potentially misspelled words
+        misspelled = []
+        for word in content_words:
+            clean_word = re.sub(r'[^\w\s]', '', word)
+            if clean_word and clean_word not in word_list and len(clean_word) > 2:
+                # Check if it's not a proper noun (capitalized)
+                if not clean_word[0].isupper():
+                    misspelled.append(clean_word)
+        
+        misspelled_words = list(set(misspelled))
+        
+    except Exception as e:
+        # If NLTK fails, use a basic dictionary approach
+        print(f"NLTK error: {e}")  # Debug print
+        
+        # Use a basic built-in English word list as fallback
+        basic_words = {
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+            'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+            'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+            'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+            'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which',
+            'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just',
+            'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good',
+            'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now',
+            'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back',
+            'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well',
+            'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give',
+            'day', 'most', 'us', 'is', 'was', 'are', 'were', 'has', 'had',
+            'been', 'have', 'did', 'does', 'doing', 'done', 'said', 'says',
+            'saying', 'went', 'going', 'gone', 'came', 'coming', 'come',
+            'took', 'taking', 'taken', 'gave', 'giving', 'given', 'made',
+            'making', 'found', 'finding', 'looked', 'looking', 'wanted',
+            'wants', 'needs', 'needed', 'help', 'helps', 'helped', 'calls',
+            'called', 'uses', 'used', 'tries', 'tried', 'shows', 'showed',
+            'seems', 'seemed', 'means', 'meant', 'comes', 'comes', 'gets',
+            'got', 'knows', 'knew', 'known', 'thinks', 'thought', 'feels',
+            'felt', 'finds', 'found', 'puts', 'put', 'says', 'said', 'asks',
+            'asked', 'sees', 'saw', 'seen', 'tells', 'told', 'writes',
+            'wrote', 'written', 'reads', 'read', 'likes', 'liked', 'loves',
+            'loved', 'hates', 'hated', 'works', 'worked', 'plays', 'played',
+            'runs', 'ran', 'walks', 'walked', 'stands', 'stood', 'sits',
+            'sat', 'lies', 'lay', 'lays', 'laid', 'eats', 'ate', 'eaten',
+            'drinks', 'drank', 'drunk', 'sleeps', 'slept', 'wakes', 'woke',
+            'woken', 'talks', 'talked', 'speaks', 'spoke', 'spoken'
+        }
+        
+        content_words = essay.content.lower().split()
+        misspelled = []
+        
+        for word in content_words:
+            clean_word = re.sub(r'[^\w\s]', '', word)
+            # Check if word is at least 3 characters and not in basic dictionary
+            if (clean_word and len(clean_word) > 2 and 
+                clean_word not in basic_words and 
+                not clean_word[0].isupper() and
+                not clean_word.isdigit()):
+                misspelled.append(clean_word)
+        
+        misspelled_words = list(set(misspelled))
+    
+    return render(request, 'essay/spell_check_tool.html', {
+        'essay': essay,
+        'misspelled_words': misspelled_words,
+    })
+
+# ================== AUTO CHECK FEATURES ==================
+@login_required
+def auto_check_essay(request, essay_id):
+    """Run automatic checks on essay"""
+    essay = get_object_or_404(Essay, id=essay_id, author=request.user)
+    
+    # Simple automated checks
+    checks = {
+        'word_count': len(essay.content.split()),
+        'sentence_count': len(re.split(r'[.!?]+', essay.content)),
+        'paragraph_count': len([p for p in essay.content.split('\n\n') if p.strip()]),
+        'avg_word_length': sum(len(word) for word in essay.content.split()) / max(len(essay.content.split()), 1),
+    }
+    
+    # Check for common issues
+    issues = []
+    
+    # Check minimum word count
+    if checks['word_count'] < 300:
+        issues.append(f"Essay is short ({checks['word_count']} words). Consider expanding to at least 300 words.")
+    
+    # Check sentence variety
+    if checks['sentence_count'] > 0:
+        avg_words_per_sentence = checks['word_count'] / checks['sentence_count']
+        if avg_words_per_sentence > 25:
+            issues.append("Sentences may be too long. Consider breaking them up.")
+        elif avg_words_per_sentence < 10:
+            issues.append("Sentences may be too short. Consider combining some.")
+    
+    # Check paragraph structure
+    if checks['paragraph_count'] < 3:
+        issues.append("Consider adding more paragraphs for better structure.")
+    
+    return JsonResponse({
+        'checks': checks,
+        'issues': issues,
+        'suggestions': [
+            "Use transition words between paragraphs",
+            "Include topic sentences in each paragraph",
+            "Proofread for spelling and grammar",
+            "Ensure proper citation if using sources"
+        ]
+    })
+    
+    # essay/views.py
+from .utils import check_grammar_issues, check_spelling, analyze_vocabulary
+
+@login_required
+def create_essay(request):
+    """Create and submit a new essay - SIMPLE"""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+        category = request.POST.get('category', 'general')
+        
+        if not title or not content:
+            messages.error(request, "Title and content are required.")
+        else:
+            # Simple creation - NO auto-analysis
+            essay = Essay.objects.create(
+                author=request.user,
+                title=title,
+                content=content,
+                category=category,
+                status='submitted'
+            )
+            
+            messages.success(request, "Essay submitted for review!")
+            return redirect('essay_detail', essay_id=essay.id)
+    
+    categories = Essay.CATEGORY_CHOICES
+    return render(request, 'essay/create_essay.html', {'categories': categories})
+
+@login_required
+def review_essay_detail(request, essay_id):
+    """Review essay - Focus on Grammar, Spelling, Vocabulary ONLY"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission.")
+        return redirect('home')
+    
+    essay = get_object_or_404(Essay, id=essay_id)
+    
+    # Run checks ONLY when admin visits (optional helpers)
+    grammar_issues = check_grammar_issues(essay.content)
+    spelling_errors = check_spelling(essay.content)
+    vocabulary_analysis = analyze_vocabulary(essay.content)
+    
+    if request.method == 'POST':
+        # Admin fills ONLY the 3 feedback fields
+        essay.grammar_errors = request.POST.get('grammar_errors', '').strip()
+        essay.spelling_errors = request.POST.get('spelling_errors', '').strip()
+        essay.vocabulary_feedback = request.POST.get('vocabulary_feedback', '').strip()
+        
+        # Optional emoji
+        if request.POST.get('emoji_feedback'):
+            essay.emoji_feedback = request.POST.get('emoji_feedback')
+        
+        # Mark as reviewed
+        essay.is_reviewed = True
+        essay.reviewed_by = request.user
+        essay.reviewed_at = timezone.now()
+        essay.save()
+        
+        messages.success(request, "Review submitted successfully!")
+        return redirect('review_essays')
+    
+    return render(request, 'essay/review_essay_detail.html', {
+        'essay': essay,
+        'grammar_issues': grammar_issues,      # Helper for admin
+        'spelling_errors': spelling_errors,    # Helper for admin
+        'vocabulary_analysis': vocabulary_analysis,  # Helper for admin
+    })

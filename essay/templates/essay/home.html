@@ -1,67 +1,147 @@
 {% extends 'essay/base.html' %}
 {% load static %}
 
-{% block title %}Home - WriteVerse{% endblock %}
+{% block title %}Home - WriteVerse | Transform Your Writing Journey{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'essay/css/home.css' %}">
 {% endblock %}
 
 {% block content %}
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-container">
             <div class="hero-content">
-                <h1 class="hero-title">Where Writers <span class="text-gradient">Grow, Compete & Succeed</span></h1>
-                <p class="hero-subtitle">Participate in essay competitions, receive expert feedback, and win exciting prizes. Join thousands of writers who have improved their skills with WriteVerse.</p>
+                {% if user.is_authenticated %}
+                    <div class="welcome-badge fade-in">
+                        <i class="fas fa-hand-sparkles"></i>
+                        <span>Welcome back, <strong>{{ user.username }}</strong>!</span>
+                    </div>
+                {% endif %}
+                
+                <h1 class="hero-title">
+                    Transform Your Writing Into 
+                    <span class="text-gradient-animated">Success Stories</span>
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Join 1,000+ writers competing in essay challenges, earning prizes, and building their portfolio. 
+                    Your next breakthrough is one essay away.
+                </p>
                 
                 <div class="hero-buttons">
-                    <a href="#" class="btn btn-primary">
-                        <i class="fas fa-trophy"></i>
-                        View Competitions
-                    </a>
                     {% if not user.is_authenticated %}
-                    <a href="{% url 'register' %}" class="btn btn-secondary">
-                        <i class="fas fa-user-plus"></i>
-                        Join Free
-                    </a>
+                        <a href="{% url 'register' %}" class="btn btn-hero-primary">
+                            <i class="fas fa-rocket"></i>
+                            <span>Start Writing Free</span>
+                            <div class="btn-shine"></div>
+                        </a>
+                        <a href="{% url 'about' %}" class="btn btn-hero-secondary">
+                            <i class="fas fa-play-circle"></i>
+                            <span>See How It Works</span>
+                        </a>
                     {% else %}
-                    <a href="{% url 'create_essay' %}" class="btn btn-secondary">
-                        <i class="fas fa-pen"></i>
-                        Create Essay
-                    </a>
-                    <a href="{% url 'my_essays' %}" class="btn btn-outline">
-                        <i class="fas fa-book"></i>
-                        My Essays
-                    </a>
+                        <a href="{% url 'create_essay' %}" class="btn btn-hero-primary">
+                            <i class="fas fa-pen-fancy"></i>
+                            <span>Write New Essay</span>
+                            <div class="btn-shine"></div>
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-hero-secondary">
+                            <i class="fas fa-chart-line"></i>
+                            <span>View Dashboard</span>
+                        </a>
                     {% endif %}
                 </div>
 
+                <!-- Live Stats Counter -->
                 <div class="hero-stats">
-                    <div class="stat">
-                        <span class="stat-number">1,000+</span>
-                        <span class="stat-label">Writers Joined</span>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" data-target="1250">0</span>
+                            <span class="stat-label">Active Writers</span>
+                        </div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">₹50,000+</span>
-                        <span class="stat-label">Prize Money</span>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" data-target="50000" data-prefix="₹">₹0</span>
+                            <span class="stat-label">Total Prizes</span>
+                        </div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">500+</span>
-                        <span class="stat-label">Essays Submitted</span>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" data-target="3480">0</span>
+                            <span class="stat-label">Essays Submitted</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-effect">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" data-target="4.8" data-decimal="1">0</span>
+                            <span class="stat-label">Avg Rating</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="hero-image">
-                <div class="hero-image-container">
-                    <i class="fas fa-lightbulb hero-icon"></i>
-                    <div class="hero-image-text">
-                        <span>Share Your</span>
-                        <span class="text-bold">Ideas</span>
-                        <span>With The World</span>
-                    </div>
+            <div class="hero-visual">
+                <div class="floating-card card-1 glass-effect">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Get Ideas</span>
                 </div>
+                <div class="floating-card card-2 glass-effect">
+                    <i class="fas fa-pen"></i>
+                    <span>Write Essays</span>
+                </div>
+                <div class="floating-card card-3 glass-effect">
+                    <i class="fas fa-award"></i>
+                    <span>Win Prizes</span>
+                </div>
+                <div class="hero-illustration">
+                    <div class="illustration-glow"></div>
+                    <i class="fas fa-feather-alt hero-icon"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trending Topics Section -->
+    <section class="trending-section">
+        <div class="container">
+            <div class="trending-header">
+                <div class="trending-badge">
+                    <i class="fas fa-fire"></i>
+                    <span>Trending Now</span>
+                </div>
+                <h2 class="section-title">Hot Topics This Week</h2>
+            </div>
+            
+            <div class="trending-topics">
+                <div class="topic-tag">#ClimateChange <span class="topic-count">127</span></div>
+                <div class="topic-tag">#AIEthics <span class="topic-count">98</span></div>
+                <div class="topic-tag">#Education <span class="topic-count">85</span></div>
+                <div class="topic-tag">#Technology <span class="topic-count">76</span></div>
+                <div class="topic-tag">#SocialMedia <span class="topic-count">64</span></div>
+                <div class="topic-tag">#FutureOfWork <span class="topic-count">52</span></div>
+                <div class="topic-tag">#Healthcare <span class="topic-count">47</span></div>
+                <div class="topic-tag">#Sustainability <span class="topic-count">41</span></div>
             </div>
         </div>
     </section>
@@ -69,35 +149,65 @@
     <!-- How It Works -->
     <section class="how-it-works">
         <div class="container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Three simple steps to start your writing journey</p>
+            <div class="section-header-center">
+                <span class="section-badge">Simple Process</span>
+                <h2 class="section-title">How WriteVerse Works</h2>
+                <p class="section-subtitle">Get started in 3 easy steps and join thousands of successful writers</p>
+            </div>
             
             <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number">01</div>
-                    <div class="step-icon">
+                <div class="step-card modern-card">
+                    <div class="step-number-modern">01</div>
+                    <div class="step-icon-modern">
                         <i class="fas fa-search"></i>
+                        <div class="icon-glow"></div>
                     </div>
-                    <h3 class="step-title">Browse Competitions</h3>
-                    <p class="step-description">Explore various essay competitions with different themes, prizes, and deadlines.</p>
+                    <h3 class="step-title">Find Your Challenge</h3>
+                    <p class="step-description">
+                        Browse through diverse essay competitions covering topics from AI to climate change. 
+                        Pick what inspires you most.
+                    </p>
+                    <div class="step-features">
+                        <span><i class="fas fa-check"></i> Multiple categories</span>
+                        <span><i class="fas fa-check"></i> Various difficulty levels</span>
+                        <span><i class="fas fa-check"></i> Clear guidelines</span>
+                    </div>
                 </div>
                 
-                <div class="step-card">
-                    <div class="step-number">02</div>
-                    <div class="step-icon">
+                <div class="step-card modern-card">
+                    <div class="step-number-modern">02</div>
+                    <div class="step-icon-modern">
                         <i class="fas fa-pen-fancy"></i>
+                        <div class="icon-glow"></div>
                     </div>
-                    <h3 class="step-title">Write & Submit</h3>
-                    <p class="step-description">Write your essay following competition guidelines and submit before the deadline.</p>
+                    <h3 class="step-title">Write & Polish</h3>
+                    <p class="step-description">
+                        Use our advanced editor with grammar checking, word count, and auto-save. 
+                        Get real-time feedback as you write.
+                    </p>
+                    <div class="step-features">
+                        <span><i class="fas fa-check"></i> Grammar checker</span>
+                        <span><i class="fas fa-check"></i> Auto-save drafts</span>
+                        <span><i class="fas fa-check"></i> Word counter</span>
+                    </div>
                 </div>
                 
-                <div class="step-card">
-                    <div class="step-number">03</div>
-                    <div class="step-icon">
+                <div class="step-card modern-card">
+                    <div class="step-number-modern">03</div>
+                    <div class="step-icon-modern">
                         <i class="fas fa-trophy"></i>
+                        <div class="icon-glow"></div>
                     </div>
-                    <h3 class="step-title">Get Feedback & Win</h3>
-                    <p class="step-description">Receive expert feedback and compete for prizes and recognition.</p>
+                    <h3 class="step-title">Compete & Win</h3>
+                    <p class="step-description">
+                        Submit your essay, get expert reviews, and compete for prizes. 
+                        Track your progress on the leaderboard.
+                    </p>
+                    <div class="step-features">
+                        <span><i class="fas fa-check"></i> Expert feedback</span>
+                        <span><i class="fas fa-check"></i> Cash prizes</span>
+                        <span><i class="fas fa-check"></i> Certificates</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -107,141 +217,288 @@
     <section class="competitions-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Featured Competitions</h2>
-                <p class="section-subtitle">Join these exciting writing challenges</p>
-                <a href="#" class="view-all-link">
-                    View All <i class="fas fa-arrow-right"></i>
+                <div>
+                    <span class="section-badge">Active Challenges</span>
+                    <h2 class="section-title">Featured Competitions</h2>
+                    <p class="section-subtitle">Join these exciting challenges and showcase your writing skills</p>
+                </div>
+                <a href="{% url 'essay_list' %}" class="btn btn-outline-dark">
+                    <span>View All</span>
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             
             <div class="competitions-grid">
-                <div class="competition-card">
-                    <div class="competition-badge">Featured</div>
-                    <div class="competition-header">
-                        <h3 class="competition-title">Climate Change Solutions</h3>
-                        <p class="competition-topic">Environment & Sustainability</p>
+                <!-- Competition Card 1 -->
+                <div class="competition-card-modern glass-effect">
+                    <div class="card-badge badge-hot">
+                        <i class="fas fa-fire"></i>
+                        <span>Hot</span>
                     </div>
-                    <div class="competition-body">
-                        <p class="competition-description">Write an essay on innovative solutions for climate change and environmental sustainability.</p>
-                        <div class="competition-details">
-                            <div class="detail">
-                                <i class="fas fa-trophy"></i>
-                                <span>Prize: ₹7,500</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-clock"></i>
-                                <span>Deadline: Dec 15, 2024</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-users"></i>
-                                <span>75 Participants</span>
-                            </div>
+                    <div class="card-header-modern">
+                        <div class="category-tag">Environment</div>
+                        <h3 class="card-title">Climate Change Solutions</h3>
+                        <p class="card-description">
+                            Share innovative ideas to combat climate change and build a sustainable future for our planet.
+                        </p>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>₹7,500</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span>15 Days Left</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>127 Entries</span>
                         </div>
                     </div>
-                    <div class="competition-footer">
-                        <a href="#" class="btn btn-outline">View Details</a>
-                        <a href="#" class="btn btn-primary">Enter Now</a>
+                    <div class="card-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 68%"></div>
+                        </div>
+                        <span class="progress-text">68% Filled</span>
+                    </div>
+                    <div class="card-footer-modern">
+                        <a href="{% url 'essay_list' %}" class="btn btn-card-outline">
+                            <span>Learn More</span>
+                        </a>
+                        <a href="{% url 'create_essay' %}" class="btn btn-card-primary">
+                            <i class="fas fa-pen"></i>
+                            <span>Enter Now</span>
+                        </a>
                     </div>
                 </div>
-                
-                <div class="competition-card">
-                    <div class="competition-badge">Popular</div>
-                    <div class="competition-header">
-                        <h3 class="competition-title">AI Ethics & Future</h3>
-                        <p class="competition-topic">Technology & Ethics</p>
+
+                <!-- Competition Card 2 -->
+                <div class="competition-card-modern glass-effect">
+                    <div class="card-badge badge-new">
+                        <i class="fas fa-star"></i>
+                        <span>New</span>
                     </div>
-                    <div class="competition-body">
-                        <p class="competition-description">Discuss ethical considerations in artificial intelligence development and its future impact.</p>
-                        <div class="competition-details">
-                            <div class="detail">
-                                <i class="fas fa-trophy"></i>
-                                <span>Prize: ₹10,000</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-clock"></i>
-                                <span>Deadline: Jan 20, 2025</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-users"></i>
-                                <span>125 Participants</span>
-                            </div>
+                    <div class="card-header-modern">
+                        <div class="category-tag">Technology</div>
+                        <h3 class="card-title">AI Ethics & Future</h3>
+                        <p class="card-description">
+                            Explore the ethical implications of AI and share your vision for responsible technology development.
+                        </p>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>₹10,000</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span>28 Days Left</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>98 Entries</span>
                         </div>
                     </div>
-                    <div class="competition-footer">
-                        <a href="#" class="btn btn-outline">View Details</a>
-                        <a href="#" class="btn btn-primary">Enter Now</a>
+                    <div class="card-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 49%"></div>
+                        </div>
+                        <span class="progress-text">49% Filled</span>
+                    </div>
+                    <div class="card-footer-modern">
+                        <a href="{% url 'essay_list' %}" class="btn btn-card-outline">
+                            <span>Learn More</span>
+                        </a>
+                        <a href="{% url 'create_essay' %}" class="btn btn-card-primary">
+                            <i class="fas fa-pen"></i>
+                            <span>Enter Now</span>
+                        </a>
                     </div>
                 </div>
-                
-                <div class="competition-card">
-                    <div class="competition-badge">Closing Soon</div>
-                    <div class="competition-header">
-                        <h3 class="competition-title">Future of Education</h3>
-                        <p class="competition-topic">Education & Technology</p>
+
+                <!-- Competition Card 3 -->
+                <div class="competition-card-modern glass-effect">
+                    <div class="card-badge badge-urgent">
+                        <i class="fas fa-bolt"></i>
+                        <span>Closing Soon</span>
                     </div>
-                    <div class="competition-body">
-                        <p class="competition-description">How will technology transform education in the next decade? Share your vision.</p>
-                        <div class="competition-details">
-                            <div class="detail">
-                                <i class="fas fa-trophy"></i>
-                                <span>Prize: ₹5,000</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-clock"></i>
-                                <span>Deadline: Dec 10, 2024</span>
-                            </div>
-                            <div class="detail">
-                                <i class="fas fa-users"></i>
-                                <span>100 Participants</span>
-                            </div>
+                    <div class="card-header-modern">
+                        <div class="category-tag">Education</div>
+                        <h3 class="card-title">Future of Learning</h3>
+                        <p class="card-description">
+                            How will education transform in the digital age? Share your predictions and innovative ideas.
+                        </p>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>₹5,000</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span>5 Days Left</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>156 Entries</span>
                         </div>
                     </div>
-                    <div class="competition-footer">
-                        <a href="#" class="btn btn-outline">View Details</a>
-                        <a href="#" class="btn btn-primary">Enter Now</a>
+                    <div class="card-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                        <span class="progress-text">85% Filled</span>
+                    </div>
+                    <div class="card-footer-modern">
+                        <a href="{% url 'essay_list' %}" class="btn btn-card-outline">
+                            <span>Learn More</span>
+                        </a>
+                        <a href="{% url 'create_essay' %}" class="btn btn-card-primary">
+                            <i class="fas fa-pen"></i>
+                            <span>Enter Now</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Leaderboard Preview -->
+    <section class="leaderboard-preview">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-badge">Top Performers</span>
+                <h2 class="section-title">This Week's Champions</h2>
+                <p class="section-subtitle">See who's leading the writing revolution</p>
+            </div>
+
+            <div class="leaderboard-cards">
+                <div class="leader-card rank-2 glass-effect">
+                    <div class="rank-badge silver">
+                        <i class="fas fa-medal"></i>
+                        <span>2nd</span>
+                    </div>
+                    <div class="leader-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 class="leader-name">Sarah Chen</h4>
+                    <p class="leader-stats">
+                        <span><i class="fas fa-trophy"></i> 485 pts</span>
+                        <span><i class="fas fa-file-alt"></i> 12 essays</span>
+                    </p>
+                </div>
+
+                <div class="leader-card rank-1 glass-effect">
+                    <div class="rank-badge gold">
+                        <i class="fas fa-crown"></i>
+                        <span>1st</span>
+                    </div>
+                    <div class="leader-avatar champion">
+                        <i class="fas fa-user"></i>
+                        <div class="champion-glow"></div>
+                    </div>
+                    <h4 class="leader-name">Alex Rivera</h4>
+                    <p class="leader-stats">
+                        <span><i class="fas fa-trophy"></i> 642 pts</span>
+                        <span><i class="fas fa-file-alt"></i> 18 essays</span>
+                    </p>
+                </div>
+
+                <div class="leader-card rank-3 glass-effect">
+                    <div class="rank-badge bronze">
+                        <i class="fas fa-medal"></i>
+                        <span>3rd</span>
+                    </div>
+                    <div class="leader-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 class="leader-name">Maya Patel</h4>
+                    <p class="leader-stats">
+                        <span><i class="fas fa-trophy"></i> 428 pts</span>
+                        <span><i class="fas fa-file-alt"></i> 10 essays</span>
+                    </p>
+                </div>
+            </div>
+
+            <a href="{% url 'leaderboard' %}" class="btn btn-outline-primary btn-large">
+                <span>View Full Leaderboard</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
     <!-- Benefits Section -->
     <section class="benefits-section">
         <div class="container">
-            <h2 class="section-title">Why Choose WriteVerse?</h2>
-            <p class="section-subtitle">We provide everything you need to excel in writing</p>
+            <div class="section-header-center">
+                <span class="section-badge">Why Choose Us</span>
+                <h2 class="section-title">Everything You Need to Succeed</h2>
+                <p class="section-subtitle">Powerful features designed to help you grow as a writer</p>
+            </div>
             
             <div class="benefits-grid">
-                <div class="benefit-card">
-                    <div class="benefit-icon">
+                <div class="benefit-card-modern glass-effect">
+                    <div class="benefit-icon-modern">
                         <i class="fas fa-award"></i>
                     </div>
-                    <h3 class="benefit-title">Recognition & Prizes</h3>
-                    <p class="benefit-description">Win cash prizes, certificates, and get your work featured in our winners' gallery.</p>
+                    <h3 class="benefit-title">Win Real Prizes</h3>
+                    <p class="benefit-description">
+                        Compete for cash prizes, certificates, and get featured in our winners' gallery. 
+                        Build your writing portfolio.
+                    </p>
+                    <div class="benefit-feature-list">
+                        <span><i class="fas fa-check-circle"></i> Cash rewards</span>
+                        <span><i class="fas fa-check-circle"></i> Certificates</span>
+                        <span><i class="fas fa-check-circle"></i> Portfolio building</span>
+                    </div>
                 </div>
                 
-                <div class="benefit-card">
-                    <div class="benefit-icon">
+                <div class="benefit-card-modern glass-effect">
+                    <div class="benefit-icon-modern">
                         <i class="fas fa-comments"></i>
                     </div>
                     <h3 class="benefit-title">Expert Feedback</h3>
-                    <p class="benefit-description">Receive detailed feedback from experienced writers, editors, and educators.</p>
+                    <p class="benefit-description">
+                        Get detailed reviews from experienced writers and educators. 
+                        Learn what works and how to improve.
+                    </p>
+                    <div class="benefit-feature-list">
+                        <span><i class="fas fa-check-circle"></i> Detailed reviews</span>
+                        <span><i class="fas fa-check-circle"></i> Improvement tips</span>
+                        <span><i class="fas fa-check-circle"></i> Expert guidance</span>
+                    </div>
                 </div>
                 
-                <div class="benefit-card">
-                    <div class="benefit-icon">
+                <div class="benefit-card-modern glass-effect">
+                    <div class="benefit-icon-modern">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3 class="benefit-title">Skill Development</h3>
-                    <p class="benefit-description">Improve your writing skills through regular practice and constructive criticism.</p>
+                    <h3 class="benefit-title">Track Progress</h3>
+                    <p class="benefit-description">
+                        Monitor your growth with detailed analytics. See your improvement over time and celebrate milestones.
+                    </p>
+                    <div class="benefit-feature-list">
+                        <span><i class="fas fa-check-circle"></i> Performance analytics</span>
+                        <span><i class="fas fa-check-circle"></i> Growth tracking</span>
+                        <span><i class="fas fa-check-circle"></i> Achievement badges</span>
+                    </div>
                 </div>
                 
-                <div class="benefit-card">
-                    <div class="benefit-icon">
+                <div class="benefit-card-modern glass-effect">
+                    <div class="benefit-icon-modern">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h3 class="benefit-title">Community Support</h3>
-                    <p class="benefit-description">Connect with fellow writers, share ideas, and grow together in our community.</p>
+                    <h3 class="benefit-title">Join Community</h3>
+                    <p class="benefit-description">
+                        Connect with fellow writers, share ideas, and learn together. 
+                        Grow in a supportive environment.
+                    </p>
+                    <div class="benefit-feature-list">
+                        <span><i class="fas fa-check-circle"></i> Active forum</span>
+                        <span><i class="fas fa-check-circle"></i> Peer support</span>
+                        <span><i class="fas fa-check-circle"></i> Networking</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -249,26 +506,54 @@
 
     <!-- CTA Section -->
     <section class="cta-section">
+        <div class="cta-glow-left"></div>
+        <div class="cta-glow-right"></div>
         <div class="container">
-            <div class="cta-content">
+            <div class="cta-content glass-effect">
+                <div class="cta-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
                 <h2 class="cta-title">Ready to Start Your Writing Journey?</h2>
-                <p class="cta-subtitle">Join thousands of writers who are already improving their skills and winning prizes.</p>
+                <p class="cta-subtitle">
+                    Join 1,000+ writers who are already transforming their skills and winning prizes. 
+                    It's completely free to get started!
+                </p>
                 <div class="cta-buttons">
                     {% if not user.is_authenticated %}
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-large">
-                        <i class="fas fa-user-plus"></i>
-                        Join WriteVerse - It's Free!
-                    </a>
+                        <a href="{% url 'register' %}" class="btn btn-cta-primary">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Sign Up Free - No Credit Card</span>
+                            <div class="btn-shine"></div>
+                        </a>
+                        <a href="{% url 'about' %}" class="btn btn-cta-ghost">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Learn More</span>
+                        </a>
                     {% else %}
-                    <a href="#" class="btn btn-primary btn-large">
-                        <i class="fas fa-pen"></i>
-                        Browse Competitions
-                    </a>
+                        <a href="{% url 'create_essay' %}" class="btn btn-cta-primary">
+                            <i class="fas fa-pen-fancy"></i>
+                            <span>Write Your First Essay</span>
+                            <div class="btn-shine"></div>
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-cta-ghost">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Go to Dashboard</span>
+                        </a>
                     {% endif %}
-                    <a href="#" class="btn btn-outline btn-large">
-                        <i class="fas fa-play-circle"></i>
-                        How It Works
-                    </a>
+                </div>
+                <div class="cta-trust-badges">
+                    <div class="trust-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>100% Free</span>
+                    </div>
+                    <div class="trust-badge">
+                        <i class="fas fa-clock"></i>
+                        <span>2 min setup</span>
+                    </div>
+                    <div class="trust-badge">
+                        <i class="fas fa-credit-card"></i>
+                        <span>No credit card</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -276,301 +561,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Wait for DOM to load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('WriteVerse Home Page Loaded');
-    
-    // 1. Animated Counter for Stats
-    function animateCounter(element, target, duration = 2000) {
-        let start = 0;
-        const increment = target / (duration / 16);
-        const timer = setInterval(() => {
-            start += increment;
-            if (start >= target) {
-                element.textContent = target + '+';
-                clearInterval(timer);
-            } else {
-                element.textContent = Math.floor(start) + '+';
-            }
-        }, 16);
-    }
-    
-    // Start counter animation when stats are visible
-    const statNumbers = document.querySelectorAll('.stat-number');
-    if (statNumbers.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const targetText = entry.target.textContent;
-                    const targetNumber = parseInt(targetText);
-                    animateCounter(entry.target, targetNumber);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.5 });
-        
-        statNumbers.forEach(number => {
-            observer.observe(number);
-        });
-    }
-    
-    // 2. Add fade-in animation to cards when they come into view
-    const animatedElements = document.querySelectorAll('.step-card, .competition-card, .benefit-card');
-    
-    const fadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-                fadeObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-    
-    // Set initial state for animation
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        fadeObserver.observe(el);
-    });
-    
-    // 3. Enhanced hover effects for competition cards
-    const competitionCards = document.querySelectorAll('.competition-card');
-    competitionCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px) scale(1.02)';
-            this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-            this.style.boxShadow = '';
-        });
-    });
-    
-    // 4. Parallax effect for hero section
-    const heroSection = document.querySelector('.hero-section');
-    if (heroSection) {
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const rate = scrolled * -0.5;
-            heroSection.style.backgroundPosition = 'center ' + (rate + 50) + 'px';
-        });
-    }
-    
-    // 5. Floating animation for hero lightbulb
-    const heroIcon = document.querySelector('.hero-icon');
-    if (heroIcon) {
-        let floatDirection = 1;
-        let floatPosition = 0;
-        
-        function floatAnimation() {
-            floatPosition += floatDirection * 0.5;
-            if (floatPosition > 10) floatDirection = -1;
-            if (floatPosition < -10) floatDirection = 1;
-            
-            heroIcon.style.transform = `translateY(${floatPosition}px)`;
-            requestAnimationFrame(floatAnimation);
-        }
-        
-        // Start animation
-        floatAnimation();
-    }
-    
-    // 6. Button click animations
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            // Create ripple effect
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.7);
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                width: ${size}px;
-                height: ${size}px;
-                top: ${y}px;
-                left: ${x}px;
-                pointer-events: none;
-            `;
-            
-            this.style.position = 'relative';
-            this.style.overflow = 'hidden';
-            this.appendChild(ripple);
-            
-            // Remove ripple after animation
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-    
-    // Add ripple animation to CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // 7. Update active nav link
-    function updateActiveNavLink() {
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-        
-        navLinks.forEach(link => {
-            const linkPath = link.getAttribute('href');
-            if (linkPath === currentPath || 
-                (currentPath === '/' && linkPath === '/home/') ||
-                (linkPath !== '/' && currentPath.startsWith(linkPath))) {
-                link.classList.add('active');
-                link.setAttribute('aria-current', 'page');
-            } else {
-                link.classList.remove('active');
-                link.removeAttribute('aria-current');
-            }
-        });
-    }
-    
-    // Call on load and when URL changes
-    updateActiveNavLink();
-    window.addEventListener('popstate', updateActiveNavLink);
-    
-    // 8. Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-    
-    // 9. Newsletter form handling
-    const newsletterForm = document.querySelector('.cta-section form');
-    if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const emailInput = this.querySelector('input[type="email"]');
-            const email = emailInput.value.trim();
-            
-            if (email && validateEmail(email)) {
-                // Simulate submission
-                emailInput.value = '';
-                showNotification('Thank you for subscribing!', 'success');
-            } else {
-                showNotification('Please enter a valid email address', 'error');
-            }
-        });
-    }
-    
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-    
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-    
-    // Add notification animations to CSS
-    const notificationStyle = document.createElement('style');
-    notificationStyle.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(notificationStyle);
-    
-    // 10. Initialize tooltips for icons
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    tooltipElements.forEach(el => {
-        el.addEventListener('mouseenter', function() {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'tooltip';
-            tooltip.textContent = this.getAttribute('data-tooltip');
-            tooltip.style.cssText = `
-                position: absolute;
-                background: #333;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 4px;
-                font-size: 12px;
-                white-space: nowrap;
-                z-index: 100;
-                transform: translateY(-100%) translateX(-50%);
-                left: 50%;
-                margin-top: -10px;
-            `;
-            
-            this.style.position = 'relative';
-            this.appendChild(tooltip);
-        });
-        
-        el.addEventListener('mouseleave', function() {
-            const tooltip = this.querySelector('.tooltip');
-            if (tooltip) tooltip.remove();
-        });
-    });
-    
-    console.log('All home page scripts loaded successfully!');
-});
-</script>
+<script src="{% static 'essay/js/home.js' %}"></script>
 {% endblock %}

@@ -264,8 +264,8 @@
             </div>
             
             <div class="essays-list">
-                {% if essays %}
-                    {% for essay in essays %}
+                
+                
                     <div class="essay-item">
                         <div class="essay-info">
                             <h4>{{ essay.title|truncatechars:40 }}</h4>
@@ -279,8 +279,8 @@
                             {{ essay.score|default:"--"|floatformat:1 }}
                         </div>
                     </div>
-                    {% endfor %}
-                {% else %}
+                    
+                
                     <div class="empty-state">
                         <i class="fas fa-file-alt"></i>
                         <p>No essays yet. Start writing!</p>
@@ -288,7 +288,7 @@
                             <i class="fas fa-plus"></i> Write First Essay
                         </a>
                     </div>
-                {% endif %}
+                
             </div>
         </div>
 
