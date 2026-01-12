@@ -61,3 +61,33 @@ urlpatterns = [
     
 ] 
 
+
+# Add these URL patterns to your essay/urls.py file
+
+from django.urls import path
+from . import views
+
+# Add these to your existing urlpatterns list:
+
+urlpatterns = [
+    # ... your existing URLs ...
+    
+    # Challenge URLs
+    path('challenges/', views.challenges_home, name='challenges_home'),
+    path('challenges/leaderboard/', views.challenge_leaderboard, name='challenge_leaderboard'),
+    path('challenges/history/', views.my_challenge_history, name='challenge_history'),
+    
+    # Timed Challenges
+    path('challenges/timed/<uuid:challenge_id>/start/', views.start_timed_challenge, name='start_timed_challenge'),
+    path('challenges/timed/<uuid:submission_id>/save/', views.save_timed_challenge, name='save_timed_challenge'),
+    path('challenges/timed/create/', views.create_timed_challenge, name='create_timed_challenge'),
+    
+    # Character Challenges
+    path('challenges/character/<uuid:challenge_id>/start/', views.start_character_challenge, name='start_character_challenge'),
+    path('challenges/character/<uuid:challenge_id>/submit/', views.submit_character_challenge, name='submit_character_challenge'),
+    path('challenges/character/create/', views.create_character_challenge, name='create_character_challenge'),
+    
+    # AI Writing Assistant
+    path('ai/assist/', views.ai_writing_assist, name='ai_writing_assist'),
+    path('ai/accept/', views.ai_accept_suggestion, name='ai_accept_suggestion'),
+]

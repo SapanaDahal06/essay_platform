@@ -22,7 +22,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'essay/css/styles.css' %}">
+    {% comment %} <link rel="stylesheet" href="{% static 'essay/css/styles.css' %}"> {% endcomment %}
+
+    <link rel="stylesheet" href="{% static 'essay/css/home.css' %}?v=2.0">
+    <link rel="stylesheet" href="{% static 'essay/css/styles.css' %}?v=3.0">
     
     {% block extra_css %}{% endblock %}
 
@@ -31,6 +34,12 @@
         body { opacity: 0; transition: opacity 0.3s ease; }
         body.loaded { opacity: 1; }
     </style>
+    <style>
+    /* TEST: If this works, you'll see PURPLE navbar */
+    .navbar {
+        background: #7C3AED !important;
+    }
+</style>
 </head>
 <body>
     <!-- Loading Spinner -->
@@ -452,4 +461,6 @@
 
     {% block extra_js %}{% endblock %}
 </body>
-</html>
+</html> 
+
+

@@ -851,3 +851,4 @@ def review_essay_detail(request, essay_id):
         'spelling_errors': spelling_errors,    # Helper for admin
         'vocabulary_analysis': vocabulary_analysis,  # Helper for admin
     })
+  

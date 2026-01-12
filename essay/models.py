@@ -590,3 +590,285 @@ class Bookmark(models.Model):
     
     def __str__(self):
         return f"{self.user.username} bookmarked {self.essay.title}"
+    
+    
+    # Add these imports at the top of your models.py
+from django.utils import timezone
+from datetime import timedelta
+import uuid
+
+# Add these models to your essay/models.py file
+
+class TimedChallenge(models.Model):
+    """Timed writing challenges with different durations"""
+    DURATION_CHOICES = [
+        (15, '15 Minutes - Sprint'),
+        (30, '30 Minutes - Quick Write'),
+        (60, '60 Minutes - Standard'),
+        (120, '2 Hours - Extended'),
+        (180, '3 Hours - Marathon'),
+    ]
+    
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200)
+    prompt = models.TextField(help_text="The writing prompt for this challenge")
+    duration_minutes = models.IntegerField(choices=DURATION_CHOICES, default=30)
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
+    min_words = models.IntegerField(default=300, help_text="Minimum word count")
+    max_words = models.IntegerField(default=1000, help_text="Maximum word count")
+    points_reward = models.IntegerField(default=100)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_timed_challenges')
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Timed Challenge'
+        verbose_name_plural = 'Timed Challenges'
+    
+    def __str__(self):
+        return f"{self.title} ({self.duration_minutes} min)"
+    
+    def get_difficulty_color(self):
+        colors = {'easy': 'success', 'medium': 'warning', 'hard': 'danger'}
+        return colors.get(self.difficulty, 'info')
+
+
+class TimedChallengeSubmission(models.Model):
+    """User submissions for timed challenges"""
+    STATUS_CHOICES = [
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('abandoned', 'Abandoned'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    challenge = models.ForeignKey(TimedChallenge, on_delete=models.CASCADE, related_name='submissions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='timed_submissions')
+    content = models.TextField(blank=True)
+    word_count = models.IntegerField(default=0)
+    time_spent_seconds = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress')
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    points_earned = models.IntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-started_at']
+        unique_together = ['challenge', 'user', 'started_at']
+        verbose_name = 'Timed Challenge Submission'
+        verbose_name_plural = 'Timed Challenge Submissions'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.challenge.title}"
+    
+    def calculate_points(self):
+        """Calculate points based on completion and word count"""
+        if self.status != 'completed':
+            return 0
+        
+        base_points = self.challenge.points_reward
+        
+        # Bonus for meeting word count requirements
+        if self.challenge.min_words <= self.word_count <= self.challenge.max_words:
+            base_points += 50
+        
+        # Time bonus (completed before time limit)
+        time_limit = self.challenge.duration_minutes * 60
+        if self.time_spent_seconds < time_limit:
+            time_bonus = int((time_limit - self.time_spent_seconds) / 60) * 5
+            base_points += min(time_bonus, 100)  # Max 100 bonus points
+        
+        self.points_earned = base_points
+        return base_points
+    
+    def save(self, *args, **kwargs):
+        if self.status == 'completed' and not self.completed_at:
+            self.completed_at = timezone.now()
+            self.calculate_points()
+        super().save(*args, **kwargs)
+
+
+class CharacterChallenge(models.Model):
+    """Character-limited writing challenges"""
+    LIMIT_CHOICES = [
+        (100, '100 Characters - Micro'),
+        (280, '280 Characters - Tweet'),
+        (500, '500 Characters - Flash'),
+        (1000, '1000 Characters - Short'),
+        (2000, '2000 Characters - Medium'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200)
+    prompt = models.TextField(help_text="The writing prompt for this challenge")
+    character_limit = models.IntegerField(choices=LIMIT_CHOICES, default=280)
+    allow_over_limit = models.BooleanField(default=False, help_text="Allow submissions exceeding limit")
+    points_reward = models.IntegerField(default=50)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_character_challenges')
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Character Challenge'
+        verbose_name_plural = 'Character Challenges'
+    
+    def __str__(self):
+        return f"{self.title} ({self.character_limit} chars)"
+    
+    def get_difficulty_badge(self):
+        if self.character_limit <= 280:
+            return 'Hard'
+        elif self.character_limit <= 1000:
+            return 'Medium'
+        else:
+            return 'Easy'
+
+
+class CharacterChallengeSubmission(models.Model):
+    """User submissions for character challenges"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    challenge = models.ForeignKey(CharacterChallenge, on_delete=models.CASCADE, related_name='submissions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='character_submissions')
+    content = models.TextField()
+    character_count = models.IntegerField(default=0)
+    word_count = models.IntegerField(default=0)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    points_earned = models.IntegerField(default=0)
+    is_valid = models.BooleanField(default=True, help_text="Within character limit")
+    
+    class Meta:
+        ordering = ['-submitted_at']
+        unique_together = ['challenge', 'user']
+        verbose_name = 'Character Challenge Submission'
+        verbose_name_plural = 'Character Challenge Submissions'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.challenge.title}"
+    
+    def validate_submission(self):
+        """Check if submission meets requirements"""
+        self.character_count = len(self.content)
+        self.word_count = len(self.content.split())
+        
+        if self.character_count <= self.challenge.character_limit:
+            self.is_valid = True
+            self.points_earned = self.challenge.points_reward
+            
+            # Bonus for using exactly the limit
+            if abs(self.character_count - self.challenge.character_limit) <= 10:
+                self.points_earned += 25
+        else:
+            self.is_valid = self.challenge.allow_over_limit
+            self.points_earned = 0 if not self.is_valid else self.challenge.points_reward // 2
+    
+    def save(self, *args, **kwargs):
+        self.validate_submission()
+        super().save(*args, **kwargs)
+
+
+class AIWritingSession(models.Model):
+    """Track AI Writing Assistant usage"""
+    SUGGESTION_TYPES = [
+        ('improve', 'Improve Text'),
+        ('expand', 'Expand Content'),
+        ('summarize', 'Summarize'),
+        ('rephrase', 'Rephrase'),
+        ('grammar', 'Grammar Check'),
+        ('tone', 'Adjust Tone'),
+        ('creative', 'Creative Suggestions'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_sessions')
+    essay = models.ForeignKey('Essay', on_delete=models.CASCADE, null=True, blank=True, related_name='ai_sessions')
+    suggestion_type = models.CharField(max_length=20, choices=SUGGESTION_TYPES)
+    original_text = models.TextField()
+    ai_suggestion = models.TextField()
+    was_accepted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'AI Writing Session'
+        verbose_name_plural = 'AI Writing Sessions'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.suggestion_type} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+class ChallengeLeaderboard(models.Model):
+    """Leaderboard for challenge participants"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='challenge_stats')
+    total_challenges_completed = models.IntegerField(default=0)
+    total_points = models.IntegerField(default=0)
+    timed_challenges_completed = models.IntegerField(default=0)
+    character_challenges_completed = models.IntegerField(default=0)
+    fastest_completion_seconds = models.IntegerField(null=True, blank=True)
+    longest_streak = models.IntegerField(default=0)
+    current_streak = models.IntegerField(default=0)
+    last_challenge_date = models.DateField(null=True, blank=True)
+    rank = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-total_points', '-total_challenges_completed']
+        verbose_name = 'Challenge Leaderboard'
+        verbose_name_plural = 'Challenge Leaderboards'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.total_points} points"
+    
+    def update_stats(self):
+        """Update user statistics"""
+        # Calculate totals
+        self.timed_challenges_completed = TimedChallengeSubmission.objects.filter(
+            user=self.user, status='completed'
+        ).count()
+        
+        self.character_challenges_completed = CharacterChallengeSubmission.objects.filter(
+            user=self.user, is_valid=True
+        ).count()
+        
+        self.total_challenges_completed = self.timed_challenges_completed + self.character_challenges_completed
+        
+        # Calculate total points
+        timed_points = TimedChallengeSubmission.objects.filter(
+            user=self.user, status='completed'
+        ).aggregate(total=models.Sum('points_earned'))['total'] or 0
+        
+        character_points = CharacterChallengeSubmission.objects.filter(
+            user=self.user
+        ).aggregate(total=models.Sum('points_earned'))['total'] or 0
+        
+        self.total_points = timed_points + character_points
+        
+        # Update streak
+        today = timezone.now().date()
+        if self.last_challenge_date:
+            days_diff = (today - self.last_challenge_date).days
+            if days_diff == 1:
+                self.current_streak += 1
+                self.longest_streak = max(self.longest_streak, self.current_streak)
+            elif days_diff > 1:
+                self.current_streak = 1
+        else:
+            self.current_streak = 1
+        
+        self.last_challenge_date = today
+        self.save()
+    
+    @classmethod
+    def update_all_ranks(cls):
+        """Update ranks for all users"""
+        leaderboard = cls.objects.all().order_by('-total_points', '-total_challenges_completed')
+        for rank, entry in enumerate(leaderboard, start=1):
+            entry.rank = rank
+            entry.save(update_fields=['rank'])
