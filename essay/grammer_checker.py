@@ -1,52 +1,68 @@
+# essay/utils/grammar_checker.py
+import language_tool_python
 import re
 
-def check_grammar(text):
-    """
-    Basic grammar checker (simplified)
-    You can enhance this later with LanguageTool or Grammarly API
-    """
-    if not text:
-        return []
+class AutoGrammarChecker:
+    def __init__(self):
+        self.tool = language_tool_python.LanguageTool('en-US')
     
-    issues = []
-    
-    # Check for lowercase 'i' as subject
-    if re.search(r'\bi\s+', text):
-        issues.append({
-            'message': 'Use capital "I" when referring to yourself',
-            'suggestion': 'I'
-        })
-    
-    # Check for double spaces
-    if '  ' in text:
-        issues.append({
-            'message': 'Avoid double spaces',
-            'suggestion': 'Use single space'
-        })
-    
-    # Check sentence capitalization
-    sentences = re.split(r'[.!?]', text)
-    for i, sentence in enumerate(sentences):
-        sentence = sentence.strip()
-        if sentence and not sentence[0].isupper():
-            issues.append({
-                'message': f'Sentence should start with capital letter',
-                'suggestion': sentence.capitalize() if sentence else ''
-            })
-    
-    # Check for common mistakes
-    common_mistakes = [
-        (r'\byou\s+are\b', "you are", "you're"),
-        (r'\bi\s+am\b', "I am", "I'm"),
-        (r'\bthey\s+are\b', "they are", "they're"),
-        (r'\bwe\s+are\b', "we are", "we're"),
-    ]
-    
-    for pattern, message, suggestion in common_mistakes:
-        if re.search(pattern, text, re.IGNORECASE):
-            issues.append({
-                'message': f'Consider contraction: {message} -> {suggestion}',
-                'suggestion': suggestion
-            })
-    
-    return issues
+    def check_essay(self, text):
+        """Check grammar and spelling automatically"""
+        if not text:
+            return {'error': 'No text provided'}
+        
+        # Run grammar check
+        matches = self.tool.check(text)
+        
+        # Categorize issues
+        issues = {
+            'grammar': [],
+            'spelling': [],
+            'punctuation': [],
+            'style': []
+        }
+        
+        for match in matches:
+            issue = {
+                'message': match.message,
+                'suggestion': match.replacements[0] if match.replacements else '',
+                'offset': match.offset,
+                'length': match.errorLength,
+                'context': match.context
+            }
+            
+            # Categorize by rule type
+            rule_id = match.ruleId.lower()
+            if 'spell' in rule_id:
+                issues['spelling'].append(issue)
+            elif 'grammar' in rule_id or 'morphology' in rule_id:
+                issues['grammar'].append(issue)
+            elif 'punctuation' in rule_id:
+                issues['punctuation'].append(issue)
+            else:
+                issues['style'].append(issue)
+        
+        # Calculate score (100 - 10*issues per 100 words)
+        words = len(text.split())
+        total_issues = len(matches)
+        
+        if words == 0:
+            score = 100
+        else:
+            issues_per_100_words = (total_issues / words) * 100
+            score = max(0, 100 - (issues_per_100_words * 2))
+        
+        return {
+            'score': round(score, 1),
+            'total_issues': total_issues,
+            'issues': issues,
+            'summary': {
+                'grammar': len(issues['grammar']),
+                'spelling': len(issues['spelling']),
+                'punctuation': len(issues['punctuation']),
+                'style': len(issues['style'])
+            }
+        }
+
+# Create singleton instance
+grammar_checker = AutoGrammarChecker()

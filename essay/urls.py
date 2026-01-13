@@ -1,5 +1,7 @@
+# essay/urls.py
 from django.urls import path
 from . import views
+from . import admin_views
 
 urlpatterns = [
     # Basic Pages
@@ -8,7 +10,7 @@ urlpatterns = [
     path('community/', views.community, name='community'),
     path('resources/', views.resources, name='resources'),
     
-    # Auth URLs - using names that match template
+    # Auth URLs
     path('login/', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),
     path('register/', views.register, name='register'),
@@ -23,12 +25,19 @@ urlpatterns = [
     path('essays/my/', views.my_essays, name='my_essays'),
     path('essays/create/', views.create_essay, name='create_essay'),
     
+    
+    # Admin grammar checking URLs
+    path('admin/grammar-queue/', admin_views.grammar_check_queue, name='grammar_check_queue'),
+    path('admin/grammar-check/<uuid:essay_id>/', admin_views.grammar_check_detail, name='grammar_check_detail'),
+    path('admin/bulk-grammar-action/', admin_views.bulk_grammar_action, name='bulk_grammar_action'),
+    path('admin/grammar-stats/', admin_views.grammar_stats, name='grammar_stats'),  # NOTE: Comma at end!
+    
     # Essay CRUD Operations
     path('essays/<uuid:essay_id>/', views.essay_detail, name='essay_detail'),
     path('essays/<uuid:essay_id>/edit/', views.edit_essay, name='edit_essay'),
     path('essays/<uuid:essay_id>/delete/', views.delete_essay, name='delete_essay'),
     path('essays/<uuid:essay_id>/comment/', views.add_comment, name='add_comment'),
-    path('essay/<uuid:pk>/like/', views.like_essay, name='like_essay'),
+    path('essays/<uuid:essay_id>/like/', views.like_essay, name='like_essay'),
     
     # Essay Features
     path('essays/<uuid:essay_id>/grammar-check/', views.grammar_check, name='grammar_check'),
@@ -37,15 +46,12 @@ urlpatterns = [
     # Paragraph Writing System
     path('essays/<uuid:essay_id>/write/', views.write_paragraph, name='write_paragraph'),
     path('essays/<uuid:essay_id>/save-paragraph/', views.save_paragraph, name='save_paragraph'),
-    path('essays/<uuid:essay_id>/unlock/<int:paragraph_num>/', views.unlock_paragraph, name='unlock_paragraph'),
     
     # Enhanced Writing
     path('write-enhanced/', views.write_paragraph_enhanced, name='write_paragraph_enhanced'),
-    path('save-secure-paragraph/', views.save_secure_paragraph, name='save_secure_paragraph'),
     
     # Admin
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-
     
     # Review URLs
     path('review-essays/', views.review_essays, name='review_essays'),
@@ -53,24 +59,7 @@ urlpatterns = [
     path('verify-essay/<uuid:essay_id>/', views.verify_essay, name='verify_essay'),
     
     # Tools
-    path('grammar-check/<uuid:essay_id>/', views.grammar_check_tool, name='grammar_check_tool'),
-    path('spell-check/<uuid:essay_id>/', views.spell_check_tool, name='spell_check_tool'),
     path('auto-check/<uuid:essay_id>/', views.auto_check_essay, name='auto_check_essay'),
-    
-    
-    
-] 
-
-
-# Add these URL patterns to your essay/urls.py file
-
-from django.urls import path
-from . import views
-
-# Add these to your existing urlpatterns list:
-
-urlpatterns = [
-    # ... your existing URLs ...
     
     # Challenge URLs
     path('challenges/', views.challenges_home, name='challenges_home'),
@@ -90,4 +79,4 @@ urlpatterns = [
     # AI Writing Assistant
     path('ai/assist/', views.ai_writing_assist, name='ai_writing_assist'),
     path('ai/accept/', views.ai_accept_suggestion, name='ai_accept_suggestion'),
-]
+     ]

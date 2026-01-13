@@ -1,0 +1,80 @@
+<!-- essay/templates/essay/admin/grammar_check_detail.html -->
+{% extends 'essay/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5>{{ essay.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Author:</strong> {{ essay.author.username }}</p>
+                    <p><strong>Category:</strong> {{ essay.get_category_display }}</p>
+                    <p><strong>Words:</strong> {{ essay.word_count }}</p>
+                    
+                    <hr>
+                    <h6>Essay Content:</h6>
+                    <div class="p-3 border bg-light" style="max-height: 500px; overflow-y: auto;">
+                        {{ essay.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Grammar Check Form</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Score (0-100)</strong></label>
+                            <input type="range" class="form-range" name="score" min="0" max="100" value="80">
+                            <div class="d-flex justify-content-between">
+                                <small>0</small>
+                                <span id="scoreDisplay">80</span>
+                                <small>100</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Status</strong></label>
+                            <select class="form-select" name="status">
+                                {% for value, label in grammar_status_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Admin Notes</strong></label>
+                            <textarea class="form-control" name="notes" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Suggestions for User</strong></label>
+                            <textarea class="form-control" name="suggestions" rows="4" placeholder="Provide grammar suggestions..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">Save Grammar Check</button>
+                        <a href="{% url 'grammar_check_queue' %}" class="btn btn-secondary w-100 mt-2">Back to Queue</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const scoreSlider = document.querySelector('input[name="score"]');
+const scoreDisplay = document.getElementById('scoreDisplay');
+scoreSlider.addEventListener('input', function() {
+    scoreDisplay.textContent = this.value;
+});
+</script>
+{% endblock %}

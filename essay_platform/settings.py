@@ -71,6 +71,17 @@ DATABASES = {
     }
 }
 
+# settings.py
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# Or use admin.py class method
+class EssayAdmin(admin.ModelAdmin):
+    class Media:
+        css = {
+            'all': ('css/admin_custom.css',)
+        }
 # =========================
 # PASSWORD VALIDATORS
 # =========================

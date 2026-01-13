@@ -1,0 +1,56 @@
+<!-- essay/templates/essay/admin/grammar_queue.html -->
+{% extends 'essay/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Grammar Check Queue</h2>
+    
+    <div class="alert alert-info">
+        <strong>Total Pending:</strong> {{ total_pending }} essays
+    </div>
+    
+    {% if requested_essays %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>Essays Requesting Grammar Check</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Words</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for essay in requested_essays %}
+                    <tr>
+                        <td><strong>{{ essay.title }}</strong></td>
+                        <td>{{ essay.author.username }}</td>
+                        <td>{{ essay.get_category_display }}</td>
+                        <td>{{ essay.word_count }}</td>
+                        <td>{{ essay.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'grammar_check_detail' essay.id %}" class="btn btn-sm btn-primary">
+                                Check Grammar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-success">
+        No essays requesting grammar check!
+    </div>
+    {% endif %}
+    
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Admin Dashboard</a>
+</div>
+{% endblock %}
