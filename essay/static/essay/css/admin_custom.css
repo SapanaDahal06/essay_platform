@@ -1,0 +1,215 @@
+/* essay/static/css/admin_custom.css */
+.button {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #417690;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin: 5px 0;
+}
+
+.button:hover {
+    background: #205067;
+}
+
+.grammar-report {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 15px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Style for auto-check button */
+.auto-check-btn {
+    background: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.auto-check-btn:hover {
+    background: #388E3C;
+}
+
+/* static/css/admin_custom.css */
+/* Custom admin styles */
+
+/* Grammar check specific styles */
+.grammar-check-panel {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.grammar-check-panel h3 {
+    margin-top: 0;
+    color: #495057;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.error-highlight {
+    position: relative;
+    display: inline-block;
+}
+
+.grammar-tooltip {
+    visibility: hidden;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 200px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 5px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.error-highlight:hover .grammar-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.grammar-tooltip:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+/* Ranking badges in list view */
+.field-ranking_position .ranking-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 40px;
+}
+
+.ranking-1 { background: linear-gradient(135deg, gold, #ffd700); color: #000; }
+.ranking-2 { background: linear-gradient(135deg, silver, #c0c0c0); color: #000; }
+.ranking-3 { background: linear-gradient(135deg, #cd7f32, #b08d57); color: white; }
+.ranking-top10 { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
+.ranking-top50 { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+.ranking-other { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
+
+/* Score indicators */
+.score-indicator {
+    display: inline-block;
+    width: 60px;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    vertical-align: middle;
+    margin: 0 5px;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.score-excellent { background: linear-gradient(90deg, #00b09b, #96c93d); }
+.score-good { background: linear-gradient(90deg, #a8e063, #56ab2f); }
+.score-fair { background: linear-gradient(90deg, #ffd200, #f7971e); }
+.score-poor { background: linear-gradient(90deg, #ff416c, #ff4b2b); }
+
+/* Action buttons in list view */
+.object-tools {
+    margin-bottom: 10px;
+}
+
+.object-tools a.addlink {
+    background: #28a745;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.object-tools a.addlink:hover {
+    background: #218838;
+}
+
+/* Custom field styling */
+.field-grammar_score {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.field-grammar_status {
+    font-weight: bold;
+}
+
+.field-grammar_status .status-checked {
+    color: #28a745;
+}
+
+.field-grammar_status .status-pending {
+    color: #ffc107;
+}
+
+.field-grammar_status .status-failed {
+    color: #dc3545;
+}
+
+/* Form improvements */
+.form-row {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.form-row:last-child {
+    border-bottom: none;
+}
+
+.help {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    #changelist .actions {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    #changelist .actions select {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    #changelist .actions button {
+        width: 100%;
+    }
+}

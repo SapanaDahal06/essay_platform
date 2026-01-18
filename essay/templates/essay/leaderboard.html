@@ -1,46 +1,35 @@
 {% extends 'essay/base.html' %}
 {% load static %}
 
-{% block title %}Leaderboard - WriteVerse{% endblock %}
+{% block title %}Writer Leaderboard - WriteVerse{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Container */
     .leaderboard-container {
         max-width: 1200px;
         margin: 30px auto;
         padding: 0 20px;
     }
     
-    .leaderboard-header {
+    /* Header */
+    .page-header {
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 50px;
     }
     
-    .leaderboard-title {
+    .page-title {
         font-size: 2.8rem;
-        color: #2C1810;
+        color: #0f172a;
         margin-bottom: 15px;
-        font-weight: 700;
-        position: relative;
-        display: inline-block;
+        font-weight: 800;
+        font-family: 'Poppins', sans-serif;
     }
     
-    .leaderboard-title::after {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: linear-gradient(90deg, #A0522D, #D2691E);
-        border-radius: 2px;
-    }
-    
-    .leaderboard-subtitle {
-        color: #8D6E63;
+    .page-subtitle {
+        color: #64748b;
         font-size: 1.1rem;
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto 20px;
     }
     
@@ -288,6 +277,55 @@
         color: #E65100;
     }
     
+    .badge-reviewed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .badge-essay-count {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+    
+    /* Quality Indicators */
+    .quality-excellent {
+        color: #4CAF50;
+    }
+    
+    .quality-good {
+        color: #FF9800;
+    }
+    
+    .quality-needs-improvement {
+        color: #F44336;
+    }
+    
+    /* Error Indicators */
+    .errors-low {
+        color: #4CAF50;
+    }
+    
+    .errors-medium {
+        color: #FF9800;
+    }
+    
+    .errors-high {
+        color: #F44336;
+    }
+    
+    /* Progress Change Indicator */
+    .progress-up {
+        color: #4CAF50;
+    }
+    
+    .progress-down {
+        color: #F44336;
+    }
+    
+    .progress-neutral {
+        color: #616161;
+    }
+    
     /* Empty State */
     .empty-state {
         text-align: center;
@@ -350,9 +388,99 @@
         color: #8D6E63;
     }
     
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+    
+    .btn-view {
+        background: #f0e6dc;
+        color: #5D4037;
+    }
+    
+    .btn-view:hover {
+        background: #e0d6cc;
+        color: #5D4037;
+        text-decoration: none;
+    }
+    
+    .btn-admin {
+        background: #e3f2fd;
+        color: #1565C0;
+    }
+    
+    .btn-admin:hover {
+        background: #bbdefb;
+        color: #1565C0;
+        text-decoration: none;
+    }
+    
+    /* User Stats */
+    .user-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .user-stat-item {
+        text-align: center;
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .user-stat-number {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #5D4037;
+    }
+    
+    .user-stat-label {
+        font-size: 0.75rem;
+        color: #8D6E63;
+    }
+    
+    /* Admin Badge */
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: 8px;
+    }
+    
+    .admin-row {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+    }
+    
+    .admin-row:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
-        .leaderboard-title {
+        .page-title {
             font-size: 2.2rem;
         }
         
@@ -384,6 +512,61 @@
         .breakdown-item {
             max-width: 150px;
         }
+        
+        .table-container {
+            font-size: 0.9rem;
+        }
+        
+        .writer-cell {
+            gap: 8px;
+        }
+        
+        .writer-avatar {
+            width: 35px;
+            height: 35px;
+            font-size: 0.9rem;
+        }
+        
+        .writer-name {
+            font-size: 0.9rem;
+        }
+        
+        .writer-role {
+            font-size: 0.75rem;
+        }
+        
+        .user-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 12px 8px;
+            font-size: 0.85rem;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .filter-tabs {
+            gap: 5px;
+        }
+        
+        .filter-tab {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .user-stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
@@ -391,9 +574,13 @@
 {% block content %}
 <div class="leaderboard-container">
     <!-- Header -->
-    <div class="leaderboard-header">
-        <h1 class="leaderboard-title">🏆 Writer Leaderboard</h1>
-        <p class="leaderboard-subtitle">Ranking writers based on essay quality, activity, and competition performance</p>
+    <div class="page-header">
+        <h1 class="page-title">🏆 Top Writers Leaderboard</h1>
+        <p class="page-subtitle">Ranked by essay quality, grammar accuracy, and overall writing performance</p>
+        <p class="page-subtitle" style="font-size: 0.95rem; color: #8D6E63;">
+            <i class="fas fa-info-circle"></i> Rankings based on reviewed essays only. Admins are marked with 
+            <span class="admin-badge" style="display: inline-flex; margin: 0 5px;">Admin</span> badge
+        </p>
     </div>
     
     <!-- Filter Tabs -->
@@ -401,108 +588,345 @@
         <a href="?filter=all" class="filter-tab {% if filter_type == 'all' or not filter_type %}active{% endif %}">🏆 All Writers</a>
         <a href="?filter=month" class="filter-tab {% if filter_type == 'month' %}active{% endif %}">📅 This Month</a>
         <a href="?filter=week" class="filter-tab {% if filter_type == 'week' %}active{% endif %}">📆 This Week</a>
-        <a href="?filter=competition" class="filter-tab {% if filter_type == 'competition' %}active{% endif %}">⚡ Competition Writers</a>
+        <a href="?filter=active" class="filter-tab {% if filter_type == 'active' %}active{% endif %}">🔥 Most Active</a>
+        <a href="?filter=quality" class="filter-tab {% if filter_type == 'quality' %}active{% endif %}">⭐ Best Quality</a>
     </div>
     
     <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">{{ total_writers|default:"0" }}</div>
+            <div class="stat-number">{{ total_users|default:"0" }}</div>
             <div class="stat-label">Total Writers</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ total_essays|default:"0" }}</div>
-            <div class="stat-label">Essays Submitted</div>
-        </div>
-        <div class="stat-card">
             <div class="stat-number">{{ avg_score|default:"0"|floatformat:1 }}</div>
-            <div class="stat-label">Average Score</div>
+            <div class="stat-label">Avg Best Score</div>
         </div>
         <div class="stat-card">
             <div class="stat-number">{{ top_score|default:"0"|floatformat:1 }}</div>
             <div class="stat-label">Top Score</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% if top_user %}
+                    {{ top_user.username|truncatechars:10 }}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div class="stat-label">Top Writer</div>
+        </div>
     </div>
+    
+    <!-- Your Position (if logged in) -->
+    {% if user_stats %}
+    <div class="leaderboard-table" style="margin-bottom: 20px; background: #f0e6dc; border: 2px solid #A0522D;">
+        <div class="table-header" style="background: linear-gradient(135deg, #5D4037, #8D6E63);">
+            <h3><i class="fas fa-user"></i> Your Position</h3>
+            <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">
+                Rank #{{ user_stats.rank }} with a best score of {{ user_stats.best_score|floatformat:1 }}
+            </p>
+        </div>
+        <div style="padding: 20px;">
+            <div class="writer-cell">
+                <div class="writer-avatar" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                    {{ request.user.username|first|upper }}
+                </div>
+                <div class="writer-info">
+                    <div class="writer-name" style="font-size: 1.3rem;">
+                        {{ request.user.username|title }}
+                        <span class="badge badge-essay-count">{{ user_stats.essay_count }} essays</span>
+                        {% if request.user.is_staff %}
+                        <span class="admin-badge">
+                            <i class="fas fa-crown"></i> Admin
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="writer-role">
+                        Level {{ user_stats.author_level }} • {{ user_stats.experience_points }} XP • 
+                        {{ user_stats.published_count }} published • {{ user_stats.total_errors }} total errors
+                    </div>
+                    <div class="user-stats-grid">
+                        <div class="user-stat-item">
+                            <div class="user-stat-number">{{ user_stats.best_score|floatformat:1 }}</div>
+                            <div class="user-stat-label">Best Score</div>
+                        </div>
+                        <div class="user-stat-item">
+                            <div class="user-stat-number">{{ user_stats.avg_score|floatformat:1 }}</div>
+                            <div class="user-stat-label">Avg Score</div>
+                        </div>
+                        <div class="user-stat-item">
+                            <div class="user-stat-number">{{ user_stats.essay_count }}</div>
+                            <div class="user-stat-label">Essays</div>
+                        </div>
+                        <div class="user-stat-item">
+                            <div class="user-stat-number">{{ user_stats.total_errors }}</div>
+                            <div class="user-stat-label">Errors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Leaderboard Table -->
     <div class="leaderboard-table">
         <div class="table-header">
-            <h3><i class="fas fa-crown"></i> Top Writers</h3>
+            <h3><i class="fas fa-trophy"></i> Writer Rankings</h3>
+            <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">
+                Top 50 writers ranked by their best essay score and overall performance
+            </p>
         </div>
         
-        {% if stats_list %}
+        {% if user_stats_list %}
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 10%">Rank</th>
-                        <th style="width: 25%">Writer</th>
-                        <th style="width: 15%">Essays</th>
-                        <th style="width: 20%">Avg Quality</th>
-                        <th style="width: 15%">Score</th>
-                        <th style="width: 15%">Progress</th>
+                        <th style="width: 8%">Rank</th>
+                        <th style="width: 30%">Writer</th>
+                        <th style="width: 15%">Best Score</th>
+                        <th style="width: 15%">Performance Stats</th>
+                        <th style="width: 10%">Essays</th>
+                        <th style="width: 22%">Best Essay & Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for stats in stats_list %}
-                    <tr>
+                    {% for user_stat in user_stats_list %}
+                    <tr class="{% if user_stat.user.is_staff %}admin-row{% endif %} {% if user_stat.user == request.user %}current-user-row{% endif %}">
                         <!-- Rank -->
                         <td class="rank-cell">
-                            {% if forloop.counter == 1 %}
-                                <span class="rank-1">🥇 {{ forloop.counter }}</span>
-                            {% elif forloop.counter == 2 %}
-                                <span class="rank-2">🥈 {{ forloop.counter }}</span>
-                            {% elif forloop.counter == 3 %}
-                                <span class="rank-3">🥉 {{ forloop.counter }}</span>
+                            {% if user_stat.rank == 1 %}
+                                <div style="text-align: center;">
+                                    <span class="rank-1">🥇 #1</span>
+                                    <div style="font-size: 0.8rem; color: #8D6E63; margin-top: 2px;">Top Writer</div>
+                                </div>
+                            {% elif user_stat.rank == 2 %}
+                                <div style="text-align: center;">
+                                    <span class="rank-2">🥈 #2</span>
+                                    <div style="font-size: 0.8rem; color: #8D6E63; margin-top: 2px;">Runner Up</div>
+                                </div>
+                            {% elif user_stat.rank == 3 %}
+                                <div style="text-align: center;">
+                                    <span class="rank-3">🥉 #3</span>
+                                    <div style="font-size: 0.8rem; color: #8D6E63; margin-top: 2px;">Third Place</div>
+                                </div>
                             {% else %}
-                                {{ forloop.counter }}
+                                <div style="text-align: center;">
+                                    <span style="font-weight: bold; font-size: 1.2rem; color: #5D4037;">#{{ user_stat.rank }}</span>
+                                    <div style="font-size: 0.8rem; color: #8D6E63; margin-top: 2px;">Ranked</div>
+                                </div>
                             {% endif %}
                         </td>
                         
-                        <!-- Writer -->
+                        <!-- Writer Info -->
                         <td>
-                            <div class="writer-cell">
-                                <div class="writer-avatar">
-                                    {{ stats.user.username|first|upper }}
-                                </div>
-                                <div class="writer-info">
-                                    <div class="writer-name">{{ stats.user.username|title }}</div>
-                                    <div class="writer-role">
-                                        {% if forloop.counter <= 3 %}
-                                            <span class="badge badge-{% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
-                                                {% if forloop.counter == 1 %}Gold Winner{% elif forloop.counter == 2 %}Silver Winner{% else %}Bronze Winner{% endif %}
+                            <div style="text-align: left;">
+                                <div class="writer-cell">
+                                    <div class="writer-avatar" style="width: 45px; height: 45px; font-size: 1.1rem; 
+                                        background: {% if user_stat.user.is_staff %}linear-gradient(135deg, #10b981 0%, #059669 100%)
+                                        {% else %}linear-gradient(135deg, #8D6E63, #A0522D){% endif %};">
+                                        {{ user_stat.user.username|first|upper }}
+                                    </div>
+                                    <div class="writer-info">
+                                        <div class="writer-name" style="font-size: 1.1rem;">
+                                            {{ user_stat.user.username|title }}
+                                            {% if user_stat.user == request.user %}
+                                                <span style="color: #A0522D; font-size: 0.8em;">(You)</span>
+                                            {% endif %}
+                                            {% if user_stat.user.is_staff %}
+                                            <span class="admin-badge">
+                                                <i class="fas fa-crown"></i> Admin
                                             </span>
-                                        {% else %}
-                                            Writer
-                                        {% endif %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="writer-role">
+                                            Level {{ user_stat.author_level }}
+                                            • {{ user_stat.experience_points }} XP
+                                            {% if user_stat.user.is_staff %}
+                                            <span style="color: #10b981; font-weight: 600;">
+                                                • Administrator
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Stats -->
+                                <div style="display: flex; gap: 15px; margin-top: 10px;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 0.9rem; color: #5D4037; font-weight: 600;">
+                                            <i class="fas fa-spell-check"></i> Grammar
+                                        </div>
+                                        <span class="{% if user_stat.grammar_errors == 0 %}errors-low{% elif user_stat.grammar_errors <= 3 %}errors-medium{% else %}errors-high{% endif %}" 
+                                              style="font-weight: 700;">
+                                            {{ user_stat.grammar_errors|default:"0" }}
+                                        </span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 0.9rem; color: #5D4037; font-weight: 600;">
+                                            <i class="fas fa-keyboard"></i> Spelling
+                                        </div>
+                                        <span class="{% if user_stat.spelling_errors == 0 %}errors-low{% elif user_stat.spelling_errors <= 2 %}errors-medium{% else %}errors-high{% endif %}" 
+                                              style="font-weight: 700;">
+                                            {{ user_stat.spelling_errors|default:"0" }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </td>
                         
+                        <!-- Best Score -->
+                        <td>
+                            <div style="text-align: center;">
+                                <!-- Main Score -->
+                                <div class="score-cell {% if user_stat.best_score >= 90 %}score-high{% elif user_stat.best_score >= 70 %}score-medium{% else %}score-low{% endif %}" 
+                                     style="font-size: 1.8rem; margin-bottom: 5px;">
+                                    {{ user_stat.best_score|floatformat:1 }}
+                                </div>
+                                
+                                <!-- Score Label -->
+                                <div style="font-size: 0.9rem; color: #5D4037; font-weight: 600; margin-bottom: 5px;">
+                                    {% if user_stat.best_score >= 90 %}Outstanding
+                                    {% elif user_stat.best_score >= 80 %}Excellent
+                                    {% elif user_stat.best_score >= 70 %}Very Good
+                                    {% elif user_stat.best_score >= 60 %}Good
+                                    {% else %}Needs Work{% endif %}
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ user_stat.best_score }}%;"></div>
+                                </div>
+                                
+                                <!-- Average Score -->
+                                <div style="font-size: 0.8rem; color: #8D6E63; margin-top: 5px;">
+                                    Avg: {{ user_stat.avg_score|floatformat:1 }}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Performance Stats -->
+                        <td>
+                            <div style="text-align: center;">
+                                <!-- Published Count -->
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 3px;">
+                                        <i class="fas fa-file-alt" style="color: #A0522D;"></i>
+                                        <span style="font-weight: 700; font-size: 1.1rem; color: #A0522D;">
+                                            {{ user_stat.published_count|default:"0" }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: #8D6E63;">Published</div>
+                                </div>
+                                
+                                <!-- Total Essays -->
+                                <div style="margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 3px;">
+                                        <i class="fas fa-clipboard-list" style="color: #2196F3;"></i>
+                                        <span style="font-weight: 700; font-size: 1.1rem; color: #2196F3;">
+                                            {{ user_stat.essay_count|default:"0" }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: #8D6E63;">Total Essays</div>
+                                </div>
+                                
+                                <!-- Error-free badge -->
+                                {% if user_stat.total_errors == 0 and user_stat.essay_count > 0 %}
+                                <div style="margin-top: 5px;">
+                                    <span class="badge badge-reviewed">
+                                        <i class="fas fa-check-circle"></i> Error-free!
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
                         <!-- Essays Count -->
                         <td>
-                            <strong>{{ stats.total_essays }}</strong>
-                            <div style="font-size: 0.85rem; color: #8D6E63;">essays</div>
-                        </td>
-                        
-                        <!-- Average Quality -->
-                        <td>
-                            <strong>{{ stats.avg_essay_score|default:"0"|floatformat:1 }}%</strong>
-                        </td>
-                        
-                        <!-- Score -->
-                        <td class="score-cell {% if stats.leaderboard_score >= 80 %}score-high{% elif stats.leaderboard_score >= 50 %}score-medium{% else %}score-low{% endif %}">
-                            {{ stats.leaderboard_score|default:"0"|floatformat:1 }}
-                        </td>
-                        
-                        <!-- Progress Bar -->
-                        <td>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ stats.leaderboard_score|default:0 }}%; max-width: 100%;"></div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: 700; color: #A0522D; margin-bottom: 8px;">
+                                    {{ user_stat.essay_count|default:"0" }}
+                                </div>
+                                <div style="font-size: 0.9rem; color: #5D4037; font-weight: 600; margin-bottom: 5px;">
+                                    Reviewed Essays
+                                </div>
+                                <div style="font-size: 0.8rem; color: #8D6E63;">
+                                    {% if user_stat.essay_count == 0 %}
+                                        No essays yet
+                                    {% elif user_stat.essay_count == 1 %}
+                                        1 essay submitted
+                                    {% else %}
+                                        {{ user_stat.essay_count }} essays
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Activity Badge -->
+                                {% if user_stat.essay_count >= 10 %}
+                                <div style="margin-top: 8px;">
+                                    <span class="badge badge-gold">
+                                        <i class="fas fa-fire"></i> Prolific Writer
+                                    </span>
+                                </div>
+                                {% elif user_stat.essay_count >= 5 %}
+                                <div style="margin-top: 8px;">
+                                    <span class="badge badge-silver">
+                                        <i class="fas fa-star"></i> Active Writer
+                                    </span>
+                                </div>
+                                {% elif user_stat.essay_count >= 1 %}
+                                <div style="margin-top: 8px;">
+                                    <span class="badge badge-bronze">
+                                        <i class="fas fa-pen"></i> Beginner
+                                    </span>
+                                </div>
+                                {% endif %}
                             </div>
-                            <div style="font-size: 0.85rem; color: #616161;">
-                                {{ stats.leaderboard_score|default:"0"|floatformat:0 }}%
+                        </td>
+                        
+                        <!-- Best Essay & Actions -->
+                        <td>
+                            <div style="text-align: left; padding: 0 5px;">
+                                {% if user_stat.best_essay %}
+                                <div style="margin-bottom: 10px;">
+                                    <div style="font-weight: 600; color: #5D4037; margin-bottom: 5px;">
+                                        <i class="fas fa-crown"></i> Best Essay
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #424242; line-height: 1.4; margin-bottom: 8px;">
+                                        <a href="{% url 'essay_detail' user_stat.best_essay.id %}" 
+                                           class="essay-title-link" 
+                                           style="font-size: 0.95rem; font-weight: 500;">
+                                            {{ user_stat.best_essay.title|truncatechars:40 }}
+                                        </a>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #8D6E63;">
+                                        Score: {{ user_stat.best_essay.overall_quality_score|floatformat:1 }} • 
+                                        {{ user_stat.best_essay.word_count }} words
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div style="margin-bottom: 10px; color: #8D6E63; font-style: italic;">
+                                    No reviewed essays yet
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    {% if user_stat.best_essay %}
+                                    <a href="{% url 'essay_detail' user_stat.best_essay.id %}" 
+                                       class="action-btn btn-view">
+                                        <i class="fas fa-book-open"></i> View Best
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if user_stat.user.is_staff and request.user.is_staff %}
+                                    <a href="{% url 'admin:essay_essay_changelist' %}?author__id__exact={{ user_stat.user.id }}" 
+                                       class="action-btn btn-admin" target="_blank">
+                                        <i class="fas fa-edit"></i> Admin
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -514,62 +938,116 @@
         <!-- Empty State -->
         <div class="empty-state">
             <div class="empty-icon">
-                <i class="fas fa-trophy"></i>
+                <i class="fas fa-users"></i>
             </div>
-            <h3 class="empty-message">No writers on the leaderboard yet</h3>
-            <p style="color: #8D6E63; margin-bottom: 20px;">Be the first to submit an essay and appear here!</p>
-            <a href="{% url 'create_essay' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
-                <i class="fas fa-pen"></i> Write Your First Essay
+            <h3 class="empty-message">No writers with reviewed essays yet</h3>
+            <p style="color: #8D6E63; margin-bottom: 20px;">
+                Writers will appear here once their essays have been reviewed by admins!
+            </p>
+            {% if request.user.is_staff %}
+            <a href="{% url 'review_essays' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class="fas fa-check-circle"></i> Review Essays
             </a>
+            {% else %}
+            <a href="{% url 'create_essay' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                <i class="fas fa-plus"></i> Write Your First Essay
+            </a>
+            {% endif %}
         </div>
         {% endif %}
     </div>
     
     <!-- Score Calculation Info -->
     <div class="score-info">
-        <h4>📊 How Scores Are Calculated</h4>
+        <h4>📊 How Writers Are Ranked</h4>
         <div class="score-breakdown">
             <div class="breakdown-item">
-                <div class="breakdown-percent">40%</div>
-                <div class="breakdown-title">Essay Quality</div>
-                <div class="breakdown-desc">Average score of all submitted essays</div>
+                <div class="breakdown-percent">50%</div>
+                <div class="breakdown-title">Best Essay Score</div>
+                <div class="breakdown-desc">Your highest-scoring reviewed essay</div>
             </div>
             <div class="breakdown-item">
                 <div class="breakdown-percent">30%</div>
-                <div class="breakdown-title">Activity Level</div>
-                <div class="breakdown-desc">Number and frequency of essays</div>
+                <div class="breakdown-title">Average Score</div>
+                <div class="breakdown-desc">Performance across all your essays</div>
             </div>
             <div class="breakdown-item">
-                <div class="breakdown-percent">30%</div>
-                <div class="breakdown-title">Consistency</div>
-                <div class="breakdown-desc">Maintaining quality over time</div>
+                <div class="breakdown-percent">20%</div>
+                <div class="breakdown-title">Essay Count</div>
+                <div class="breakdown-desc">Number of reviewed essays submitted</div>
             </div>
         </div>
+        <p style="margin-top: 15px; color: #8D6E63; font-size: 0.9rem;">
+            <i class="fas fa-info-circle"></i> Only reviewed essays count toward rankings. Submit your essays for review to appear on the leaderboard!
+        </p>
     </div>
 </div>
 
 <script>
-    // Simple JavaScript for better UX
     document.addEventListener('DOMContentLoaded', function() {
-        // Smooth scroll for filter tabs
+        // Filter tabs functionality
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', function(e) {
-                if(this.classList.contains('active')) {
-                    e.preventDefault();
-                }
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
             });
         });
         
-        // Highlight current user if logged in
-        const currentUsername = "{{ request.user.username }}";
-        if(currentUsername) {
-            document.querySelectorAll('.writer-name').forEach(nameElement => {
-                if(nameElement.textContent.trim().toLowerCase() === currentUsername.toLowerCase()) {
-                    nameElement.style.color = '#A0522D';
-                    nameElement.innerHTML = nameElement.textContent + ' <i class="fas fa-user" style="margin-left: 5px;"></i>';
-                }
-            });
+        // Highlight current user's row
+        const currentUserRow = document.querySelector('.current-user-row');
+        if (currentUserRow) {
+            currentUserRow.style.boxShadow = '0 0 0 2px #A0522D inset';
+            currentUserRow.style.borderRadius = '8px';
         }
+        
+        // Add pulse animation to admin badge
+        const adminBadges = document.querySelectorAll('.admin-badge');
+        adminBadges.forEach(badge => {
+            setInterval(() => {
+                badge.style.transform = 'scale(1.05)';
+                badge.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.5)';
+                setTimeout(() => {
+                    badge.style.transform = 'scale(1)';
+                    badge.style.boxShadow = 'none';
+                }, 1000);
+            }, 3000);
+        });
+        
+        // Add hover effects to writer avatars
+        const writerAvatars = document.querySelectorAll('.writer-avatar');
+        writerAvatars.forEach(avatar => {
+            avatar.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) rotate(5deg)';
+                this.style.transition = 'all 0.3s ease';
+            });
+            avatar.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
+        });
+        
+        // Progress bar animation
+        const progressBars = document.querySelectorAll('.progress-fill');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.transition = 'width 1s ease-in-out';
+                bar.style.width = width;
+            }, 300);
+        });
+        
+        // Medal animation for top 3
+        const medals = document.querySelectorAll('.rank-1, .rank-2, .rank-3');
+        medals.forEach(medal => {
+            setInterval(() => {
+                medal.style.transform = 'scale(1.1)';
+                medal.style.filter = 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.5))';
+                setTimeout(() => {
+                    medal.style.transform = 'scale(1)';
+                    medal.style.filter = 'none';
+                }, 500);
+            }, 5000);
+        });
     });
 </script>
 {% endblock %}

@@ -1,4 +1,4 @@
-# essay/models.py - CLEAN VERSION
+# essay/models.py - COMPLETE AND CORRECTED VERSION
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -8,6 +8,47 @@ import re
 from django.db.models import Count, Sum
 from django.utils import timezone
 from datetime import timedelta
+
+# ================== GLOBAL CHOICES ==================
+STATUS_CHOICES = [
+    ('draft', 'Draft'),
+    ('submitted', 'Submitted'),
+    ('published', 'Published'),
+    ('archived', 'Archived'),
+]
+
+CATEGORY_CHOICES = [
+    ('general', 'General'),
+    ('education', 'Education'),
+    ('technology', 'Technology'),
+    ('environment', 'Environment'),
+    ('science', 'Science'),
+    ('literature', 'Literature'),
+    ('creative', 'Creative Writing'),
+    ('argumentative', 'Argumentative'),
+    ('narrative', 'Narrative'),
+    ('descriptive', 'Descriptive'),
+]
+
+EMOJI_FEEDBACK_CHOICES = [
+    ('🌟', '🌟 Excellent - Outstanding work!'),
+    ('👍', '👍 Good - Well done!'),
+    ('✅', '✅ Satisfactory - Meets expectations'),
+    ('📝', '📝 Needs Improvement - Some areas to work on'),
+    ('💡', '💡 Creative - Great ideas!'),
+    ('🚀', '🚀 Impressive - Above and beyond'),
+    ('🎯', '🎯 On Target - Meets all requirements'),
+    ('🔥', '🔥 Amazing work!'),
+    ('💫', '💫 Exceptional effort'),
+    ('✨', '✨ Well crafted'),
+]
+
+GRAMMAR_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('checked', 'Checked'),
+    ('needs_review', 'Needs Review'),
+    ('auto_approved', 'Auto Approved'),
+]
 
 # ================== LANGUAGE MODEL ==================
 class Language(models.Model):
@@ -52,47 +93,6 @@ class Badge(models.Model):
 
 # ================== ESSAY MODEL ==================
 class Essay(models.Model):
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('submitted', 'Submitted for Review'),
-        ('published', 'Published'),
-        ('rejected', 'Rejected'),
-        ('archived', 'Archived'),
-    ]
-    
-    CATEGORY_CHOICES = [
-        ('general', 'General'),
-        ('education', 'Education'),
-        ('technology', 'Technology'),
-        ('environment', 'Environment'),
-        ('science', 'Science'),
-        ('literature', 'Literature'),
-        ('creative', 'Creative Writing'),
-        ('argumentative', 'Argumentative'),
-        ('narrative', 'Narrative'),
-        ('descriptive', 'Descriptive'),
-    ]
-    
-    EMOJI_FEEDBACK_CHOICES = [
-        ('🌟', '🌟 Excellent - Outstanding work!'),
-        ('👍', '👍 Good - Well done!'),
-        ('✅', '✅ Satisfactory - Meets expectations'),
-        ('📝', '📝 Needs Improvement - Some areas to work on'),
-        ('💡', '💡 Creative - Great ideas!'),
-        ('🚀', '🚀 Impressive - Above and beyond'),
-        ('🎯', '🎯 On Target - Meets all requirements'),
-        ('🔥', '🔥 Amazing work!'),
-        ('💫', '💫 Exceptional effort'),
-        ('✨', '✨ Well crafted'),
-    ]
-    
-    GRAMMAR_STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('checked', 'Checked'),
-        ('needs_review', 'Needs Review'),
-        ('auto_approved', 'Auto Approved'),
-    ]
-    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -130,6 +130,7 @@ class Essay(models.Model):
         blank=True,
         related_name='reviewed_essays'
     )
+    
     reviewed_at = models.DateTimeField(null=True, blank=True)
     
     # Grammar and spelling feedback
@@ -148,7 +149,7 @@ class Essay(models.Model):
     )
     verified_at = models.DateTimeField(null=True, blank=True)
     
-    # NEW GRAMMAR CHECKING FIELDS
+    # GRAMMAR CHECKING FIELDS
     grammar_status = models.CharField(
         max_length=20,
         choices=GRAMMAR_STATUS_CHOICES,
@@ -179,6 +180,20 @@ class Essay(models.Model):
         default=False,
         help_text="User requested grammar check"
     )
+    
+    # ENHANCED GRAMMAR CHECKING FIELDS
+    grammar_errors_json = models.JSONField(default=dict, blank=True, null=True)
+    spelling_errors_json = models.JSONField(default=dict, blank=True, null=True)
+    style_suggestions_json = models.JSONField(default=dict, blank=True, null=True)
+    readability_score = models.FloatField(default=0.0)
+    overall_quality_score = models.FloatField(default=0.0)
+    
+    # RANKING FIELDS
+    ranking_score = models.FloatField(default=0.0)
+    ranking_position = models.IntegerField(default=0)
+    
+    # For highlighted content
+    highlighted_content = models.TextField(blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -236,6 +251,69 @@ class Essay(models.Model):
             'auto_approved': 'info'
         }
         return colors.get(self.grammar_status, 'secondary')
+    
+    def calculate_quality_score(self):
+        """Calculate overall quality score based on various metrics"""
+        base_score = float(self.grammar_score or 0)
+        
+        # Adjust based on errors
+        if self.grammar_errors_json:
+            error_count = len(self.grammar_errors_json.get('errors', []))
+            base_score -= error_count * 0.5
+        
+        if self.spelling_errors_json:
+            spelling_errors = len(self.spelling_errors_json.get('errors', []))
+            base_score -= spelling_errors * 0.8
+            
+        # Add bonus for word count (essays of reasonable length)
+        word_count = self.word_count or 0
+        if 500 <= word_count <= 2000:
+            base_score += 5
+        elif word_count > 2000:
+            base_score += 2
+            
+        # Ensure score is between 0-100
+        final_score = max(0, min(100, base_score))
+        self.overall_quality_score = final_score
+        self.ranking_score = final_score
+        return final_score
+    
+    def generate_highlighted_content(self):
+        """Generate HTML with highlighted errors"""
+        if not self.content:
+            return ""
+        
+        content = self.content
+        
+        # Apply grammar error highlights
+        if self.grammar_errors_json:
+            for error in self.grammar_errors_json.get('errors', []):
+                start = error.get('start_pos', 0)
+                end = error.get('end_pos', 0)
+                suggestion = error.get('suggestion', '')
+                
+                if start < end and end <= len(content):
+                    error_text = content[start:end]
+                    highlighted = f'<span class="grammar-error" title="Grammar: {suggestion}">{error_text}</span>'
+                    content = content[:start] + highlighted + content[end:]
+        
+        # Apply spelling error highlights
+        if self.spelling_errors_json:
+            for error in self.spelling_errors_json.get('errors', []):
+                word = error.get('word', '')
+                suggestions = error.get('suggestions', [])
+                
+                if word in content:
+                    suggestion_text = ", ".join(suggestions[:3])
+                    highlighted = f'<span class="spelling-error" title="Spelling suggestions: {suggestion_text}">{word}</span>'
+                    content = content.replace(word, highlighted, 1)
+        
+        return content
+    
+    def update_ranking(self):
+        """Update essay ranking based on quality score"""
+        # This will be implemented in admin actions
+        pass
 
 
 # ================== GRAMMAR CHECK MODEL ==================
@@ -392,7 +470,7 @@ class Notification(models.Model):
         ('comment', 'New Comment'),
         ('like', 'New Like'),
         ('system', 'System Notification'),
-        ('achievement', 'Achievement Unloaded'),
+        ('achievement', 'Achievement Unlocked'),
         ('essay_published', 'Essay Published'),
         ('reply', 'Reply to Comment'),
         ('competition_start', 'Competition Started'),
@@ -438,7 +516,7 @@ class Paragraph(models.Model):
 
 # ================== COMPETITION MODEL ==================
 class Competition(models.Model):
-    STATUS_CHOICES = [
+    COMPETITION_STATUS_CHOICES = [
         ('upcoming', 'Upcoming'),
         ('active', 'Active'),
         ('judging', 'Judging'),
@@ -450,11 +528,11 @@ class Competition(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     theme = models.CharField(max_length=100)
-    category = models.CharField(max_length=50, choices=Essay.CATEGORY_CHOICES, default='general')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
     word_limit_min = models.IntegerField(default=300)
     word_limit_max = models.IntegerField(default=1500)
     time_limit_minutes = models.IntegerField(default=60)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='upcoming')
+    status = models.CharField(max_length=20, choices=COMPETITION_STATUS_CHOICES, default='upcoming')
     is_active = models.BooleanField(default=True)
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_competitions')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -664,3 +742,119 @@ class ChallengeLeaderboard(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.total_points} points"
+
+
+# ================== USER SCORE MODEL ==================
+class UserScore(models.Model):
+    """Model to track user scores for leaderboard"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_score')
+    
+    # Scores
+    essay_score = models.FloatField(default=0.0, help_text="Average essay quality score")
+    grammar_score = models.FloatField(default=0.0, help_text="Average grammar score")
+    spelling_score = models.FloatField(default=0.0, help_text="Average spelling score")
+    vocabulary_score = models.FloatField(default=0.0, help_text="Vocabulary usage score")
+    
+    # Counts
+    essays_written = models.IntegerField(default=0)
+    essays_published = models.IntegerField(default=0)
+    essays_reviewed = models.IntegerField(default=0)
+    
+    # Rankings
+    rank = models.IntegerField(default=0)
+    percentile = models.FloatField(default=0.0)
+    
+    # Badges and achievements
+    badges_earned = models.IntegerField(default=0)
+    achievements_unlocked = models.IntegerField(default=0)
+    
+    # Streak
+    current_streak = models.IntegerField(default=0)
+    longest_streak = models.IntegerField(default=0)
+    
+    # Activity
+    last_active = models.DateTimeField(null=True, blank=True)
+    total_time_spent = models.IntegerField(default=0, help_text="Total writing time in minutes")
+    
+    # Calculated total score
+    total_score = models.FloatField(default=0.0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-total_score', '-essays_published']
+    
+    def __str__(self):
+        return f"{self.user.username} - Score: {self.total_score}"
+    
+    def calculate_total_score(self):
+        """Calculate total score based on various metrics"""
+        base_score = self.essay_score * 0.5
+        grammar_bonus = self.grammar_score * 0.2
+        spelling_bonus = self.spelling_score * 0.15
+        vocabulary_bonus = self.vocabulary_score * 0.15
+        
+        # Activity bonus
+        essay_bonus = min(50, self.essays_published * 5)
+        streak_bonus = min(30, self.current_streak * 2)
+        badge_bonus = min(20, self.badges_earned * 5)
+        
+        total = (
+            base_score + 
+            grammar_bonus + 
+            spelling_bonus + 
+            vocabulary_bonus + 
+            essay_bonus + 
+            streak_bonus + 
+            badge_bonus
+        )
+        self.total_score = total
+        return total
+    
+    def update_user_score(self):
+        """Update scores based on user's essays"""
+        # Get all reviewed essays by this user
+        reviewed_essays = Essay.objects.filter(
+            author=self.user,
+            is_reviewed=True
+        )
+        
+        if reviewed_essays.exists():
+            # Calculate average score
+            avg_score = reviewed_essays.aggregate(
+                avg=models.Avg('overall_quality_score')
+            )['avg'] or 0.0
+            self.essay_score = avg_score
+            
+            # Count essays
+            self.essays_written = Essay.objects.filter(author=self.user).count()
+            self.essays_published = Essay.objects.filter(
+                author=self.user, 
+                status='published'
+            ).count()
+            self.essays_reviewed = reviewed_essays.count()
+            
+            # Calculate total score
+            self.calculate_total_score()
+        
+        self.save()
+        return self
+    
+    @classmethod
+    def update_all_ranks(cls):
+        """Update ranks for all users"""
+        scores = cls.objects.all().order_by('-total_score')
+        
+        for rank, score in enumerate(scores, start=1):
+            score.rank = rank
+            
+            # Calculate percentile
+            total_users = scores.count()
+            if total_users > 1:
+                score.percentile = ((total_users - rank) / (total_users - 1)) * 100
+            else:
+                score.percentile = 100
+            
+            score.save()

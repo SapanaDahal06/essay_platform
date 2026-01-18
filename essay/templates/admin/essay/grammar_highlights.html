@@ -1,0 +1,207 @@
+<!-- essay/templates/admin/essay/grammar_highlights.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+    <h1>Grammar Highlights: {{ essay.title }}</h1>
+    <p><strong>Author:</strong> {{ essay.author.username }} | <strong>Submitted:</strong> {{ essay.created_at|date:"F d, Y H:i" }}</p>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h3>Grammar Statistics</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #2ecc71;">
+                <strong>Grammar Score</strong><br>
+                <span style="font-size: 24px; color: #2ecc71;">{{ essay.grammar_score|default:"N/A" }}/100</span>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #e74c3c;">
+                <strong>Grammar Errors</strong><br>
+                <span style="font-size: 24px; color: #e74c3c;">
+                    {% if essay.grammar_errors_json and essay.grammar_errors_json.errors %}
+                        {{ essay.grammar_errors_json.errors|length }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db;">
+                <strong>Spelling Errors</strong><br>
+                <span style="font-size: 24px; color: #3498db;">
+                    {% if essay.spelling_errors_json and essay.spelling_errors_json.errors %}
+                        {{ essay.spelling_errors_json.errors|length }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #9b59b6;">
+                <strong>Readability</strong><br>
+                <span style="font-size: 24px; color: #9b59b6;">{{ essay.readability_score|default:"0"|floatformat:1 }}/100</span>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin: 20px 0; padding: 15px; background: #f1f8ff; border-radius: 5px;">
+        <strong>Legend:</strong>
+        <span style="color: #e74c3c; margin-left: 15px;">Grammar Errors (red wavy underline)</span>
+        <span style="color: #3498db; margin-left: 15px;">Spelling Errors (blue dotted underline)</span>
+        <span style="margin-left: 15px;">Hover over highlighted text to see suggestions</span>
+    </div>
+    
+    <div style="border: 1px solid #ddd; padding: 25px; border-radius: 8px; background: white; margin: 20px 0;">
+        <h3>Essay Content with Highlights</h3>
+        <div style="border: 1px solid #eee; padding: 20px; border-radius: 5px; background: #f9f9f9; max-height: 600px; overflow-y: auto;">
+            {% if essay.highlighted_content %}
+                {{ essay.highlighted_content|safe }}
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                    <h4>No highlights available</h4>
+                    <p>Run grammar check to see highlighted errors.</p>
+                    <div style="text-align: left; margin-top: 20px;">
+                        {{ essay.content|linebreaks }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if essay.grammar_errors_json and essay.grammar_errors_json.errors or essay.spelling_errors_json and essay.spelling_errors_json.errors %}
+    <div style="margin: 20px 0;">
+        <h3>Detailed Error Report</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">Type</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Error</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Suggestion</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if essay.grammar_errors_json and essay.grammar_errors_json.errors %}
+                {% for error in essay.grammar_errors_json.errors %}
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; background: rgba(231, 76, 60, 0.1);">
+                        <span style="background: #e74c3c; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px;">Grammar</span>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ error.word|default:error.issue|default:"-" }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        {% if error.suggestions %}
+                            {{ error.suggestions|join:", " }}
+                        {% else %}
+                            {{ error.suggestion|default:"-" }}
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 12px;">
+                        {% if error.rule %}
+                            {{ error.rule }}
+                        {% elif error.sentence %}
+                            Sentence {{ error.sentence }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                
+                {% if essay.spelling_errors_json and essay.spelling_errors_json.errors %}
+                {% for error in essay.spelling_errors_json.errors %}
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; background: rgba(52, 152, 219, 0.1);">
+                        <span style="background: #3498db; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px;">Spelling</span>
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">{{ error.word|default:"-" }}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        {% if error.suggestions %}
+                            {{ error.suggestions|join:", " }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-size: 12px;">
+                        {% if error.position %}
+                            Word {{ error.position|add:"1" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 30px; display: flex; gap: 15px;">
+        <a href="{% url 'admin:essay_essay_change' essay.id %}" style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+            ← Back to Essay
+        </a>
+        <a href="/admin/essay/essay/{{ essay.id }}/run-grammar-check/" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+            🔍 Re-check Grammar
+        </a>
+    </div>
+</div>
+
+<style>
+.grammar-error {
+    background-color: rgba(231, 76, 60, 0.15);
+    border-bottom: 2px dashed #e74c3c;
+    position: relative;
+    cursor: help;
+    padding: 1px 2px;
+    margin: 0 1px;
+    border-radius: 3px;
+}
+
+.grammar-error:hover::after {
+    content: attr(title);
+    position: absolute;
+    background: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1000;
+    font-size: 12px;
+}
+
+.spelling-error {
+    background-color: rgba(52, 152, 219, 0.15);
+    border-bottom: 2px dotted #3498db;
+    position: relative;
+    cursor: help;
+    padding: 1px 2px;
+    margin: 0 1px;
+    border-radius: 3px;
+}
+
+.spelling-error:hover::after {
+    content: attr(title);
+    position: absolute;
+    background: #3498db;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1000;
+    font-size: 12px;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='essay' %}">Essay</a>
+    &rsaquo; <a href="{% url 'admin:essay_essay_changelist' %}">Essays</a>
+    &rsaquo; Grammar Highlights
+</div>
+{% endblock %}

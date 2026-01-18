@@ -37,13 +37,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'essay_platform.urls'
 
+# =========================
+# TEMPLATES
+# =========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-            ],  # Empty for app-level templates
-        'APP_DIRS': True,  # This must be True
+            os.path.join(BASE_DIR, 'templates'),  # Global templates directory
+        ],
+        'APP_DIRS': True,  # This must be True to load app templates
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -51,9 +54,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',  # For media files
-                # 'string_if_invalid': 'INVALID_EXPRESSION: %s',
-                
-                
             ],
         },
     },
@@ -71,17 +71,6 @@ DATABASES = {
     }
 }
 
-# settings.py
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-# Or use admin.py class method
-class EssayAdmin(admin.ModelAdmin):
-    class Media:
-        css = {
-            'all': ('css/admin_custom.css',)
-        }
 # =========================
 # PASSWORD VALIDATORS
 # =========================

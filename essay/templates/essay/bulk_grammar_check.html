@@ -1,0 +1,622 @@
+<!-- essay/templates/admin/essay/bulk_grammar_check.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .bulk-check-container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .header-section {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .header-section h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+    
+    .subtitle {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+    
+    .selection-controls {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .control-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+    
+    .form-control {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 200px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .essay-list {
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .essay-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s ease;
+    }
+    
+    .essay-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .essay-item:last-child {
+        border-bottom: none;
+    }
+    
+    .essay-info {
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .essay-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .essay-meta {
+        font-size: 12px;
+        color: #7f8c8d;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .checkbox-wrapper {
+        position: relative;
+    }
+    
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
+    }
+    
+    .status-pending {
+        background: #ffc107;
+        color: #000;
+    }
+    
+    .status-checked {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-failed {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .progress-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #e9ecef;
+        display: none;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+        width: 0%;
+    }
+    
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #495057;
+    }
+    
+    .results-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        display: none;
+    }
+    
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .result-card {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        border-left: 4px solid #3498db;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+        flex-wrap: wrap;
+    }
+    
+    .select-all-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+    
+    @media (max-width: 768px) {
+        .bulk-check-container {
+            padding: 15px;
+            margin: 10px;
+        }
+        
+        .control-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .form-control {
+            width: 100%;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='essay' %}">Essay</a>
+    &rsaquo; <a href="{% url 'admin:essay_essay_changelist' %}">Essays</a>
+    &rsaquo; Bulk Grammar Check
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="bulk-check-container">
+    <!-- Header -->
+    <div class="header-section">
+        <h1>🔍 Bulk Grammar Check</h1>
+        <p class="subtitle">Check grammar and spelling for multiple essays at once</p>
+    </div>
+    
+    <!-- Selection Controls -->
+    <div class="selection-controls">
+        <h3><i class="fas fa-filter"></i> Filter Essays</h3>
+        <form method="get" id="filterForm">
+            <div class="control-group">
+                <select name="status" class="form-control" onchange="filterEssays()">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending Check</option>
+                    <option value="checked" {% if request.GET.status == 'checked' %}selected{% endif %}>Already Checked</option>
+                    <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                </select>
+                
+                <select name="category" class="form-control" onchange="filterEssays()">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if request.GET.category == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+                
+                <input type="date" name="date_from" class="form-control" placeholder="From Date" 
+                       value="{{ request.GET.date_from }}" onchange="filterEssays()">
+                
+                <input type="date" name="date_to" class="form-control" placeholder="To Date" 
+                       value="{{ request.GET.date_to }}" onchange="filterEssays()">
+                
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear Filters
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Select All Controls -->
+    <div class="select-all-controls">
+        <div class="checkbox-wrapper">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+            <label for="selectAll">Select All</label>
+        </div>
+        <span id="selectedCount">0 essays selected</span>
+    </div>
+    
+    <!-- Essay List -->
+    <form method="post" id="bulkCheckForm">
+        {% csrf_token %}
+        <div class="essay-list">
+            {% if essays %}
+                {% for essay in essays %}
+                <div class="essay-item">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" name="essay_ids" value="{{ essay.id }}" 
+                               class="essay-checkbox" onchange="updateSelectedCount()">
+                    </div>
+                    <div style="color: #3498db;">
+                        <i class="fas fa-file-alt fa-lg"></i>
+                    </div>
+                    <div class="essay-info">
+                        <div class="essay-title">{{ essay.title|truncatechars:100 }}</div>
+                        <div class="essay-meta">
+                            <span>By: {{ essay.author.username }}</span>
+                            <span>{{ essay.created_at|date:"M d, Y" }}</span>
+                            <span>{{ essay.word_count }} words</span>
+                            <span>
+                                Status: 
+                                <span class="status-badge status-{{ essay.grammar_status|default:'pending' }}">
+                                    {{ essay.grammar_status|default:'pending'|title }}
+                                </span>
+                            </span>
+                            {% if essay.grammar_score %}
+                            <span>Score: {{ essay.grammar_score }}/100</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'admin:essay_essay_change' essay.id %}" 
+                       class="btn" style="padding: 5px 10px; font-size: 12px;">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>No essays found</h3>
+                    <p>Try adjusting your filters or check back later.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <h3><i class="fas fa-sync-alt fa-spin"></i> Processing Essays...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-info">
+                <span id="progressText">Starting...</span>
+                <span id="progressCount">0/0</span>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-container" id="resultsContainer">
+            <h3><i class="fas fa-check-circle"></i> Processing Complete</h3>
+            <div id="resultsContent">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="button" class="btn btn-primary" onclick="startBulkCheck()" 
+                    {% if not essays %}disabled{% endif %}>
+                <i class="fas fa-play"></i> Start Bulk Check
+            </button>
+            
+            <button type="button" class="btn btn-success" onclick="checkSelected()">
+                <i class="fas fa-check-circle"></i> Check Selected Only
+            </button>
+            
+            <a href="{% url 'admin:essay_essay_changelist' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Essays
+            </a>
+            
+            <button type="button" class="btn" onclick="exportSelection()">
+                <i class="fas fa-download"></i> Export Selection
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Global variables
+let totalEssays = {{ essays|length|default:0 }};
+let selectedEssays = [];
+
+// Filter essays
+function filterEssays() {
+    document.getElementById('filterForm').submit();
+}
+
+// Clear filters
+function clearFilters() {
+    window.location.href = window.location.pathname;
+}
+
+// Toggle select all
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.essay-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateSelectedCount();
+}
+
+// Update selected count
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.essay-checkbox:checked');
+    selectedEssays = Array.from(checkboxes).map(cb => cb.value);
+    
+    const count = selectedEssays.length;
+    document.getElementById('selectedCount').textContent = `${count} essay${count !== 1 ? 's' : ''} selected`;
+    
+    // Update select all checkbox
+    const totalCheckboxes = document.querySelectorAll('.essay-checkbox').length;
+    const selectAll = document.getElementById('selectAll');
+    selectAll.checked = count > 0 && count === totalCheckboxes;
+    selectAll.indeterminate = count > 0 && count < totalCheckboxes;
+}
+
+// Check selected essays only
+function checkSelected() {
+    if (selectedEssays.length === 0) {
+        alert('Please select at least one essay to check.');
+        return;
+    }
+    
+    startBulkCheck(selectedEssays);
+}
+
+// Start bulk grammar check
+function startBulkCheck(specificIds = null) {
+    const essayIds = specificIds || selectedEssays;
+    
+    if (essayIds.length === 0) {
+        if (!specificIds) {
+            alert('Please select at least one essay to check.');
+        }
+        return;
+    }
+    
+    // Show progress bar
+    document.getElementById('progressContainer').style.display = 'block';
+    document.getElementById('resultsContainer').style.display = 'none';
+    
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const progressCount = document.getElementById('progressCount');
+    
+    const total = essayIds.length;
+    let processed = 0;
+    let successful = 0;
+    let failed = 0;
+    
+    // Update progress
+    function updateProgress() {
+        processed++;
+        const percentage = (processed / total) * 100;
+        progressFill.style.width = `${percentage}%`;
+        progressCount.textContent = `${processed}/${total}`;
+        
+        if (processed === total) {
+            progressText.textContent = 'Processing complete!';
+            
+            // Show results
+            setTimeout(() => {
+                showResults(successful, failed, total);
+            }, 1000);
+        }
+    }
+    
+    // Process each essay
+    essayIds.forEach((essayId, index) => {
+        setTimeout(() => {
+            fetch(`/admin/essay/essay/${essayId}/run-grammar-check/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    successful++;
+                } else {
+                    failed++;
+                }
+                updateProgress();
+            })
+            .catch(error => {
+                failed++;
+                updateProgress();
+            });
+        }, index * 1000); // Stagger requests by 1 second
+    });
+}
+
+// Show results
+function showResults(successful, failed, total) {
+    document.getElementById('progressContainer').style.display = 'none';
+    document.getElementById('resultsContainer').style.display = 'block';
+    
+    const resultsContent = document.getElementById('resultsContent');
+    
+    let resultsHTML = `
+        <div class="results-grid">
+            <div class="result-card" style="border-left-color: #28a745;">
+                <h4 style="margin: 0; color: #28a745;">Successful</h4>
+                <div style="font-size: 24px; font-weight: bold;">${successful}</div>
+                <small>Essays checked successfully</small>
+            </div>
+            
+            <div class="result-card" style="border-left-color: #dc3545;">
+                <h4 style="margin: 0; color: #dc3545;">Failed</h4>
+                <div style="font-size: 24px; font-weight: bold;">${failed}</div>
+                <small>Essays with errors</small>
+            </div>
+            
+            <div class="result-card" style="border-left-color: #3498db;">
+                <h4 style="margin: 0; color: #3498db;">Total</h4>
+                <div style="font-size: 24px; font-weight: bold;">${total}</div>
+                <small>Essays processed</small>
+            </div>
+            
+            <div class="result-card" style="border-left-color: #ffc107;">
+                <h4 style="margin: 0; color: #ffc107;">Success Rate</h4>
+                <div style="font-size: 24px; font-weight: bold;">${total > 0 ? Math.round((successful / total) * 100) : 0}%</div>
+                <small>Percentage successful</small>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h4>Next Steps:</h4>
+            <ul style="color: #495057;">
+                <li>Review individual essays for detailed grammar feedback</li>
+                <li>Export the results for offline analysis</li>
+                <li>Check the essay rankings for comparison</li>
+            </ul>
+        </div>
+    `;
+    
+    resultsContent.innerHTML = resultsHTML;
+}
+
+// Export selection
+function exportSelection() {
+    if (selectedEssays.length === 0) {
+        alert('Please select essays to export.');
+        return;
+    }
+    
+    const data = {
+        essay_ids: selectedEssays,
+        export_date: new Date().toISOString(),
+        total_essays: selectedEssays.length
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bulk-check-export-${new Date().getTime()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateSelectedCount();
+});
+</script>
+
+{% endblock %}

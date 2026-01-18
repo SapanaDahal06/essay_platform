@@ -116,7 +116,7 @@
 }
 
 .hero-subtitle {
-    font-size: 1.375rem;
+    font-size: 1.25rem;
     line-height: 1.8;
     color: #475569;
     margin-bottom: 3rem;
@@ -217,7 +217,7 @@
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.02);
     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.2);
     border-color: #dbeafe;
 }
@@ -367,7 +367,7 @@
     border-radius: 9999px;
     font-weight: 700;
     color: #1e40af;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     text-decoration: none;
     font-size: 0.9375rem;
@@ -533,7 +533,7 @@
 }
 
 .competition-card-modern:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1.01);
     box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.2);
     border-color: #93c5fd;
 }
@@ -594,7 +594,7 @@
 .card-description {
     color: #64748b;
     line-height: 1.7;
-    font-size: 0.9375rem;
+    font-size: 1rem;
 }
 
 .card-stats {
@@ -718,7 +718,7 @@
 }
 
 .leader-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-8px) scale(1.02);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
@@ -825,7 +825,7 @@
 }
 
 .benefit-card-modern:hover {
-    transform: translateY(-8px);
+    transform: translateY(-8px)scale(1.01);
     box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.15);
     border-color: #93c5fd;
 }
@@ -993,6 +993,118 @@
     box-shadow: 0 15px 40px -5px rgba(16, 185, 129, 0.5);
 }
 
+
+
+
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 5rem 0 4rem;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.125rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .btn-hero-primary,
+    .btn-hero-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* ===== MOBILE TOUCH IMPROVEMENTS ===== */
+    
+    /* Better card touch targets */
+    .btn-card-outline,
+    .btn-card-primary {
+        min-height: 48px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    /* CTA buttons */
+    .btn-cta-primary,
+    .btn-cta-ghost {
+        min-height: 52px;
+        padding: 1.25rem 2rem;
+    }
+    
+    /* Stat cards more tappable */
+    .stat-card {
+        padding: 1.75rem 1.5rem;
+        min-height: 120px;
+    }
+    
+    /* Leaderboard view all button */
+    .btn-large {
+        min-height: 52px;
+    }
+    
+    .hero-stats {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .trending-topics {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding: 0.5rem 0;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+    
+    .topic-tag {
+        flex-shrink: 0;
+    }
+    
+    .leaderboard-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .rank-1 {
+        grid-column: span 1;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .cta-content {
+        padding: 3rem 2rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-cta-primary,
+    .btn-cta-ghost {
+        width: 100%;
+        justify-content: center;
+    }
+}
 .btn-cta-ghost {
     background: transparent;
     color: white;

@@ -1,5 +1,7 @@
 # essay/urls.py
-from django.urls import path
+from django.urls import path,include
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from . import views
 from . import admin_views
 
@@ -10,27 +12,30 @@ urlpatterns = [
     path('community/', views.community, name='community'),
     path('resources/', views.resources, name='resources'),
     
-    # Auth URLs
-    path('login/', views.custom_login, name='login'),
+  path('login/', views.custom_login, name='login'),
+    
     path('logout/', views.custom_logout, name='logout'),
     path('register/', views.register, name='register'),
+    
+        # Add these authentication URLs
+    path('accounts/', include('django.contrib.auth.urls')),
+    
     
     # User Profile Pages
     path('profile/', views.profile, name='profile'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'),  # This is the correct leaderboard
     
     # Essay Pages
     path('essays/', views.essay_list, name='essay_list'),
     path('essays/my/', views.my_essays, name='my_essays'),
     path('essays/create/', views.create_essay, name='create_essay'),
     
-    
     # Admin grammar checking URLs
     path('admin/grammar-queue/', admin_views.grammar_check_queue, name='grammar_check_queue'),
     path('admin/grammar-check/<uuid:essay_id>/', admin_views.grammar_check_detail, name='grammar_check_detail'),
     path('admin/bulk-grammar-action/', admin_views.bulk_grammar_action, name='bulk_grammar_action'),
-    path('admin/grammar-stats/', admin_views.grammar_stats, name='grammar_stats'),  # NOTE: Comma at end!
+    path('admin/grammar-stats/', admin_views.grammar_stats, name='grammar_stats'),
     
     # Essay CRUD Operations
     path('essays/<uuid:essay_id>/', views.essay_detail, name='essay_detail'),
@@ -58,8 +63,13 @@ urlpatterns = [
     path('review-essay/<uuid:essay_id>/', views.review_essay_detail, name='review_essay_detail'),
     path('verify-essay/<uuid:essay_id>/', views.verify_essay, name='verify_essay'),
     
+    # Bulk grammar check
+    path('bulk-grammar-check/', admin_views.bulk_grammar_check, name='bulk_grammar_check'),
+    
     # Tools
     path('auto-check/<uuid:essay_id>/', views.auto_check_essay, name='auto_check_essay'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
+    
     
     # Challenge URLs
     path('challenges/', views.challenges_home, name='challenges_home'),
@@ -79,4 +89,4 @@ urlpatterns = [
     # AI Writing Assistant
     path('ai/assist/', views.ai_writing_assist, name='ai_writing_assist'),
     path('ai/accept/', views.ai_accept_suggestion, name='ai_accept_suggestion'),
-     ]
+]
